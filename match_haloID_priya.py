@@ -270,43 +270,53 @@ def main(argv=None):
     order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
 
 
-    test0 = (halos.Mvir[order_host] >10**14.) 
+    test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host] <10**14.)
     #Mvir = halos.Mvir[order_host][test0]
     #Mvir_sub = halos.Mvir_sub[order_sub][test0]
     #Macc_sub = halos.Macc_sub[order_sub][test0]
     #Rhost = halos.Rvir[order_host][test0]
     #coords_host = halos.coords[order_host][test0]
     #coords_sub = halos.coords_sub[order_sub][test0]
-    z_acc_first = (1./halos.a_first_acc_sub[order_sub][test0])-1
-
-    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
-    plt.hist(z_acc_sub,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}>10^{14}h^{-1}{\rm M}_{\odot}$')
-    test1=(halos.Mvir[order_host] >10**13.5) &(halos.Mvir[order_host] <10**14.)    
-    z_acc_sub = (1./halos.a_acc_sub[order_sub][test1])-1
-    plt.hist(z_acc_sub,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.5},10^{14}]h^{-1}{\rm M}_{\odot}$')
-    test1=(halos.Mvir[order_host] >10**13.) &(halos.Mvir[order_host] <10**13.5)    
-    z_acc_sub = (1./halos.a_acc_sub[order_sub][test1])-1
-    plt.hist(z_acc_sub,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.},10^{13.5}]h^{-1}{\rm M}_{\odot}$')
+    vel_host = halos.velocity[order_host][test0]
+    vel_sub = halos.velocity_sub[order_sub][test0]
+    
+    z_acc_first = 1./halos.a_first_acc_sub[order_sub][test0]-1        
+    z_acc_sub = 1./halos.a_acc_sub[order_sub][test0]-1
+    test1 = (z_acc_sub < 0.1)
+    test2 = (z_acc_sub > 0.1) & (z_acc_sub < 0.25)
+    test3 = (z_acc_sub > 0.25) & (z_acc_sub < 0.5)
+    test4 = z_acc_sub>0.5
+    velDiff = vel_sub[:,2]-vel_host[:,2]
+    plt.hist(velDiff[test1],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} < 0.1$')
+    plt.hist(velDiff[test2],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} = [0.1,0.25]$')
+    plt.hist(velDiff[test3],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} =[0.25,0.5]$')
+    plt.hist(velDiff[test4],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} >0.5$')
+    plt.xlabel(r'$\Delta v_[\rm z}$[km/s]')
+    plt.ylabel('fraction')
     plt.legend()
-    plt.xlabel(r'$z_{\rm acc}$')
     plt.tight_layout()
-    plt.savefig('hist_z_acc.pdf')
+    plt.savefig('vz_zacc_M13.5to14_z0.pdf')
     plt.clf()
 
     
-    z_acc_first = (1./halos.a_first_acc_sub[order_sub][test0])-1
-    plt.hist(z_acc_first,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}>10^{14}h^{-1}{\rm M}_{\odot}$')
-    test1=(halos.Mvir[order_host] >10**13.5) &(halos.Mvir[order_host] <10**14.)    
-    z_acc_first = (1./halos.a_first_acc_sub[order_sub][test1])-1
-    plt.hist(z_acc_first,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.5},10^{14}]h^{-1}{\rm M}_{\odot}$')
-    test1=(halos.Mvir[order_host] >10**13.) &(halos.Mvir[order_host] <10**13.5)    
-    z_acc_first = (1./halos.a_first_acc_sub[order_sub][test1])-1
-    plt.hist(z_acc_first,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.},10^{13.5}]h^{-1}{\rm M}_{\odot}$')
+    test1 = (z_acc_first < 0.1)
+    test2 = (z_acc_first > 0.1) & (z_acc_first < 0.25)
+    test3 = (z_acc_first > 0.25) & (z_acc_first < 0.5)
+    test4 = z_acc_first>0.5
+    velDiff = vel_sub[:,2]-vel_host[:,2]
+    plt.hist(velDiff[test1],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} < 0.1$')
+    plt.hist(velDiff[test2],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} = [0.1,0.25]$')
+    plt.hist(velDiff[test3],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} =[0.25,0.5]$')
+    plt.hist(velDiff[test4],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} >0.5$')
+    plt.xlabel(r'$\Delta v_[\rm z}$[km/s]')
+    plt.ylabel('fraction')
     plt.legend()
-    plt.xlabel(r'$z_{\rm acc,first}$')
     plt.tight_layout()
-    plt.savefig('hist_z_acc_first.pdf')
+    plt.savefig('vz_zacc_first_M13.5to14_z0.pdf')
     plt.clf()
+    
+        
+    
 
 if __name__ == "__main__":
     sys.exit(main())
