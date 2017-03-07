@@ -270,76 +270,42 @@ def main(argv=None):
     order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
 
 
-    test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host] < 10**13.)
-    Mvir = halos.Mvir[order_host][test0]
-    Mvir_sub = halos.Mvir_sub[order_sub][test0]
-    Macc_sub = halos.Macc_sub[order_sub][test0]
-    Vmax_sub = halos.Vmax_sub[order_sub][test0]
-    Vacc_sub = halos.Vacc_sub[order_sub][test0]
-    Rhost = halos.Rvir[order_host][test0]
-    coords_host = halos.coords[order_host][test0]
-    coords_sub = halos.coords_sub[order_sub][test0]
-    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
-    abs1 = np.abs(coords_host-coords_sub)
-    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))   
-    concen = halos.concen[order_host][test0]
-    vel_host = halos.velocity[order_host][test0]
-    vel_sub = halos.velocity_sub[order_sub][test0]
-    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    test0 = (halos.Mvir[order_host] >10**14.) 
+    #Mvir = halos.Mvir[order_host][test0]
+    #Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    #Macc_sub = halos.Macc_sub[order_sub][test0]
+    #Rhost = halos.Rvir[order_host][test0]
+    #coords_host = halos.coords[order_host][test0]
+    #coords_sub = halos.coords_sub[order_sub][test0]
     z_acc_first = (1./halos.a_first_acc_sub[order_sub][test0])-1
-    abs1 = np.abs(vel_sub-vel_host)**2.
-    vel_abs =np.sqrt(np.sum(abs1,axis=1))
-    print np.std(vel_sub[:,2]),np.std(vel_host[:,2]),np.std(vel_sub[:,2]-vel_host[:,2]),np.std(vel_abs),np.mean(vel_abs)
 
-
-
-
-
-    test1 = (z_acc_sub <0.1)
-    test2 = (z_acc_sub > 0.1) & (z_acc_sub<0.25)
-    test3 = (z_acc_sub > 0.25) & (z_acc_sub<0.5)
-    test4 = (z_acc_sub > 0.5)
-    ratio = vel_abs
-    hist,bins = np.histogram(ratio[test1],normed=False,bins=30)
-    plt.plot((bins[:-1]+bins[1:])/2.,1.0*hist/np.sum(hist),'b-',alpha=0.7,label=r'$z_{\rm acc}<0.1$')
-    hist,bins = np.histogram(ratio[test2],normed=False,bins=30)
-    plt.plot((bins[:-1]+bins[1:])/2.,1.0*hist/np.sum(hist),'g-',alpha=0.7,label=r'$z_{\rm acc}=0.1-0.25$')
-
-    hist,bins = np.histogram(ratio[test3],normed=False,bins=30)
-    plt.plot((bins[:-1]+bins[1:])/2.,1.0*hist/np.sum(hist),'r-',alpha=0.7,label=r'$z_{\rm acc}=0.25-0.5$')
-    hist,bins = np.histogram(ratio[test4],normed=False,bins=30)
-    plt.plot((bins[:-1]+bins[1:])/2.,1.0*hist/np.sum(hist),'c-',alpha=0.7,label=r'$z_{\rm acc}>0.5$')
-
-    #ts: Assume the HOD model and put 100 subhalos in each host halos
-
-    """mhost = halos.Mvir[(halos.hostFlag==-1)&(halos.Mvir>10**14.)]
-    rhost = halos.Rvir[(halos.hostFlag==-1)&(halos.Mvir>10**14.)]
-    G = 4.299*10**(-9) #unit:[Mpc(km/s)^2 Msun^-1]
-    #sigma = G*(mvir)/rhost #ts:unit is [mpc^2]:physical coords
-    vx = np.zeros(100*np.shape(mhost)[0])
-    vy = np.zeros(100*np.shape(mhost)[0])
-    vz = np.zeros(100*np.shape(mhost)[0])
-        
-    for i,mass in enumerate(mhost):
-        sigma = G*(mass)/rhost[i]
-        vx[i*100:(i+1)*100]=np.random.normal(0,np.sqrt(sigma/3.),100)
-        vy[i*100:(i+1)*100]=np.random.normal(0,np.sqrt(sigma/3.),100)
-        vz[i*100:(i+1)*100]=np.random.normal(0,np.sqrt(sigma/3.),100)
-        
-    vel = np.sqrt(vx**2.+vy**2.+vz**2.)
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    plt.hist(z_acc_sub,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}>10^{14}h^{-1}{\rm M}_{\odot}$')
+    test1=(halos.Mvir[order_host] >10**13.5) &(halos.Mvir[order_host] <10**14.)    
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test1])-1
+    plt.hist(z_acc_sub,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.5},10^{14}]h^{-1}{\rm M}_{\odot}$')
+    test1=(halos.Mvir[order_host] >10**13.) &(halos.Mvir[order_host] <10**13.5)    
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test1])-1
+    plt.hist(z_acc_sub,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.},10^{13.5}]h^{-1}{\rm M}_{\odot}$')
+    plt.legend()
+    plt.xlabel(r'$z_{\rm acc}$')
+    plt.tight_layout()
+    plt.savefig('hist_z_acc.pdf')
+    plt.clf()
 
     
-    hist,bins = np.histogram(vel,normed=False,bins=30)
-    plt.plot((bins[:-1]+bins[1:])/2.,1.0*hist/np.sum(hist),'b--')
-    plt.plot(np.median(vel)*np.ones(20),np.linspace(0.0,0.0014,20),'b--')
-    plt.plot(np.median(ratio[test4])*np.ones(20),np.linspace(0.0,0.0014,20),'c--')"""
-
-    plt.legend(loc='upper right',fontsize=20)
-    #plt.axis([0,1.0,0.0,2.2])
-    plt.xlabel(r'$\Delta v $[km/s]',fontsize=25)
-    plt.ylabel(r'fraction',fontsize=25)
+    z_acc_first = (1./halos.a_first_acc_sub[order_sub][test0])-1
+    plt.hist(z_acc_first,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}>10^{14}h^{-1}{\rm M}_{\odot}$')
+    test1=(halos.Mvir[order_host] >10**13.5) &(halos.Mvir[order_host] <10**14.)    
+    z_acc_first = (1./halos.a_first_acc_sub[order_sub][test1])-1
+    plt.hist(z_acc_first,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.5},10^{14}]h^{-1}{\rm M}_{\odot}$')
+    test1=(halos.Mvir[order_host] >10**13.) &(halos.Mvir[order_host] <10**13.5)    
+    z_acc_first = (1./halos.a_first_acc_sub[order_sub][test1])-1
+    plt.hist(z_acc_first,bins=20,histtype='step',lw=3,label=r'$M_{\rm host}=[10^{13.},10^{13.5}]h^{-1}{\rm M}_{\odot}$')
+    plt.legend()
+    plt.xlabel(r'$z_{\rm acc,first}$')
     plt.tight_layout()
-    plt.savefig('velocity_z_acc.pdf')
+    plt.savefig('hist_z_acc_first.pdf')
     plt.clf()
 
 if __name__ == "__main__":
