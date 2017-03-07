@@ -1,0 +1,102 @@
+
+
+def plot_miyatake_crossXi(filenames,outputfilename,Lbox=1000.,bs=4):
+    files = glob.glob(filenames)
+    files.sort()
+    print files
+    
+
+    data_matter = 'Miyatake_3d_rich_all_z0-RR.dat'
+    xi_m = calc_xi.Calc_xi(data_matter,bs=bs,Lbox=Lbox)
+    r_m,xi0_m,xi2_m = xi_m.calc_xi_periodic_m(data_matter)
+    colors = ['b--','g--']
+    i=0
+    for filename in files:
+        if 'upper' or 'lower' in filename:
+            xi = calc_xi.Calc_xi(filename,bs=bs,Lbox=Lbox)
+            rr,mono,quad = xi.calc_xi_cross_periodic(filename)
+            label = filename.split('-DR')[0].split('_')[3]
+            if 'upper' in filename:
+                plt.plot(rr,mono/xi0_m,label=r'$large-<R_{\rm mem}>$')
+            if 'lower' in filename:
+                plt.plot(rr,mono/xi0_m,label=r'$small-<R_{\rm mem}>$')
+            test = (rr>10.) & (rr < 30)
+            bias = np.mean(mono[test]/xi0_m[test])
+            print i,filename,bias,np.std(mono[test]/xi0_m[test])
+            plt.plot(rr,bias*np.ones(np.shape(rr)[0]),colors[i],label='b='+str(np.round(bias,2)))
+            i += 1
+
+    plt.legend()
+    plt.xlabel(r'$r[h^{-1}{\rm Mpc}]$')
+    plt.ylabel(r'$\xi_{hm}/\xi_{mm}$')
+    #plt.axis([0.2,30,10**-1,10**4.])
+
+    plt.axis([0.2,30,2.6,3.6])
+    plt.tight_layout()
+    plt.savefig(outputfilename)
+    plt.clf()
+
+
+def plot_crossXi_Macc2Msub(filenames,outputfilename,Lbox=1000.,bs=4):
+    files = glob.glob(filenames)
+    files.sort()
+    print files
+    
+    if 'MultiDark' in files[0]:
+        data_matter = '/home/fas/padmanabhan/ts485/research/Cluster/data/data_priya/do2point/MultiDark_particle_z0.3-DD.dat'
+    if 'Bolshoi' in files[0]:
+        data_matter = '/home/fas/padmanabhan/ts485/research/Cluster/data/data_priya/do2point/Bolshoi_particle_z0.3-DD.dat'
+    xi_m = calc_xi.Calc_xi(data_matter,bs=bs,Lbox=Lbox)
+    r_m,xi0_m,xi2_m = xi_m.calc_xi_periodic(data_matter)
+    i=0
+    for filename in files:
+        xi = calc_xi.Calc_xi(filename,bs=bs,Lbox=Lbox)
+        rr,mono,quad = xi.calc_xi_cross_periodic(filename)
+        file2 = '/home/fas/padmanabhan/ts485/research/Cluster/data/data_priya/samples/sample_Macc2Msub/'+filename.split('/')[-1].split('-')[0]+'.dat'
+        print file2
+        #data = np.loadtxt(file2.split('hostSub')[0]+'sub'+file2.split('hostSub')[1])
+        data = np.loadtxt(file2)
+        label = str(np.round(np.median(data[:,4]/data[:,5]),2))
+        plt.plot(rr,mono/xi0_m,label=r'$M_{\rm vir}/M_{\rm acc}=$'+label)
+
+    print r_m
+    print rr
+    plt.legend()
+    plt.xlabel(r'$r[h^{-1}{\rm Mpc}]$')
+    plt.ylabel(r'$\xi_{host,sub}/\xi_{mm}$')
+    plt.axis([0.0,5.,0,7.])
+    plt.tight_layout()
+    plt.savefig(outputfilename)
+    plt.clf()
+
+
+def plot_autoXi_Macc2Msub(filenames,outputfilename,Lbox=1000.,bs=4):
+    files = glob.glob(filenames)
+    files.sort()
+    print files
+    
+    if 'MultiDark' in files[0]:
+        data_matter = '/home/fas/padmanabhan/ts485/research/Cluster/data/data_priya/do2point/MultiDark_particle_z0.3-DD.dat'
+    if 'Bolshoi' in files[0]:
+        data_matter = '/home/fas/padmanabhan/ts485/research/Cluster/data/data_priya/do2point/Bolshoi_particle_z0.3-DD.dat'
+    xi_m = calc_xi.Calc_xi(data_matter,bs=bs,Lbox=Lbox)
+    r_m,xi0_m,xi2_m = xi_m.calc_xi_periodic(data_matter)
+    i=0
+    for filename in files:
+        xi = calc_xi.Calc_xi(filename,bs=bs,Lbox=Lbox)
+        rr,mono,quad = xi.calc_xi_periodic(filename)
+        file2 = '/home/fas/padmanabhan/ts485/research/Cluster/data/data_priya/samples/sample_Macc2Msub/'+filename.split('/')[-1].split('-')[0]+'.dat'
+        print file2
+        data = np.loadtxt(file2)
+        label = str(np.round(np.median(data[:,4]/data[:,5]),2))
+        plt.plot(rr,mono/xi0_m,label=r'$M_{\rm vir}/M_{\rm acc}=$'+label)
+
+    print r_m
+    print rr
+    plt.legend()
+    plt.xlabel(r'$r[h^{-1}{\rm Mpc}]$')
+    plt.ylabel(r'$\xi_{hh}/\xi_{mm}$')
+    plt.axis([0.0,5.,0,80.])
+    plt.tight_layout()
+    plt.savefig(outputfilename)
+    plt.clf()

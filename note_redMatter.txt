@@ -1,0 +1,52 @@
+
+    filename1 = "../redmapper_dr8_public_v5.2_catalog.fits"
+    filename2 = "../redmapper_dr8_public_v5.2_members.fits"
+    clus = Cluster(filename1,filename2)
+    clus.take_cluster(z_cut=0.35)
+    print 'the number of clusters is ',np.shape(clus.cluster_id)
+    clus.find_member(clus.cluster_id)
+    print 'the number of members is ',np.shape(clus.mem_id)
+    M_i = clus.absolute_magnitude(cosmo=cosmo_Bolshoi)
+    print M_i[:10]
+    #order,n_den = clus.rank_order_member(M_i,z_init=0.02,z_cut=0.35)
+    #print M_i[order][:10],M_i[order][-1]
+    #print np.shape(M_i)
+    g_r = clus.mem_mags[:,1]-clus.mem_mags[:,2]
+    #np.savetxt('redMapper_abundance.txt',np.array((n_den,M_i[order])).T)
+
+
+
+    test = (clus.mem_z!=-1)
+    test2 = (clus.mem_z==-1)
+    g_r = clus.mem_mags[:,1]-clus.mem_mags[:,2]
+    g_r = g_r[test2]
+    M_i = M_i[test2]
+    print np.shape(M_i)
+    order = np.argsort(M_i)
+
+    for i in np.arange(10):
+        order_sub = order[50000*i:50000*(i+1)]
+        print np.median(M_i[order_sub]),np.median(g_r[order_sub])
+        plt.hist(g_r[order_sub],bins=100)
+    plt.legend()                 
+    plt.xlabel(r'$g-r$')
+    plt.tight_layout()
+    plt.savefig('redMapper_member_photo_gr.pdf')
+    plt.clf()
+
+    plt.hexbin(M_i,g_r,mincnt=1,gridsize=200)
+    range_mag = np.linspace(-19.0,-24,50)[::-1]
+    median = np.zeros(50)
+    for i,mag_i in enumerate(range_mag):
+        test0 = (M_i > mag_i) & (M_i < range_mag[i]+0.1)
+        median[i] = np.median(g_r[test0])
+    plt.plot(clus.mem_imag[test2],g_r,'.',alpha=0.5,label='photo')
+    plt.plot(range_mag,median,'c--')
+    plt.plot(np.linspace(-17,-24,50),-0.07*np.linspace(-17,-24,50)-0.083,'r--')
+    plt.axis([-25,-18,0.,3.])
+    plt.ylabel(r'$g-r$',fontsize=25)
+    plt.xlabel(r'$M_{i}$',fontsize=25)
+    plt.legend(loc='upper left')
+    plt.tight_layout()
+    plt.savefig('redMapper_member_photo_Mi_gr.pdf')
+    plt.clf()

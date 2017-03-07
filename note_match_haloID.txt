@@ -1,0 +1,246 @@
+#ts: to generate a file
+    Lbox = 250.
+    halos = Halos('../../MultiDark/data/raw_data/Bolshoi_halos_z0.dat',Lbox=Lbox)
+    print 'hello'
+    haloID,mass,vmax,rvir,concen,coords_host,subCoords,mvir_sub,vmax_sub = halos.select_subhalos()
+    test = (mvir_sub > 10**10.4) & (vmax_sub > 56.)
+    message = '#haloID_host Mvir_host, Vmax_host, Rvir_host, c_host, x_host, y_host, z_host, Mvir_sub, Vmax_sub, x_subhalo, y_subhalo, z_subhalo'
+    fmt = '%d %f %f %f %f %f %f %f %f %f %f %f %f'
+
+    np.savetxt('Bolshoi_subhalo_catalog_z0.txt',np.array((haloID[test],mass[test],vmax[test],rvir[test],concen[test],coords_host[test][:,0],coords_host[test][:,1],coords_host[test][:,2],mvir_sub[test],vmax_sub[test],subCoords[test][:,0],subCoords[test][:,1],subCoords[test][:,2])).T,header = message,fmt=fmt)
+    print 'bye'
+
+
+#ts: For the case of MultiDark
+    Lbox = 1000.
+    halos = Halos('/home/fas/padmanabhan/ts485/research/MultiDark/code/MultiDark_M12_V200_z0.dat',Lbox=Lbox)
+    print 'hello'
+    haloID,mass,vmax,rvir,concen,coords_host,subCoords,mvir_sub,vmax_sub = halos.select_subhalos()
+    test = (mvir_sub > 10**12.2) 
+    message = '#haloID_host Mvir_host, Vmax_host, Rvir_host, c_host, x_host, y_host, z_host, Mvir_sub, Vmax_sub, x_subhalo, y_subhalo, z_subhalo'
+    fmt = '%d %f %f %f %f %f %f %f %f %f %f %f %f'
+
+    np.savetxt('MultiDark_subhalo_catalog_z0.txt',np.array((haloID[test],mass[test],vmax[test],rvir[test],concen[test],coords_host[test][:,0],coords_host[test][:,1],coords_host[test][:,2],mvir_sub[test],vmax_sub[test],subCoords[test][:,0],subCoords[test][:,1],subCoords[test][:,2])).T,header = message,fmt=fmt)
+    print 'bye'
+
+#ts: make a subhalo files for correlation functions
+
+	filename = '../data/subhalo_catalog_z0.txt'
+	dt = dt = np.dtype([('mvir_host','f4'),('vmax_host','f4'),('rvir_host','f4'),('c_host','f4'),('x_host','f4'),('y_host','f4'),('z_host','f4'),('mvir_sub','f4'),('vmax_sub','f4'),('x_sub','f4'),('y_sub','f4'),('z_sub','f4')])
+	data = np.loadtxt(filename,skiprows=1,dtype=dt)
+	print np.shape(data)
+	data = data[(data['mvir_sub']>10**10.3) & (data['vmax_sub']>56.)]
+	print 'finish reading',np.shape(data)
+	test = (data['mvir_host'] > 10.**14.0) 
+	print 'num of subhalos is ',np.shape(data[test])
+	coords_host = np.array((data['x_host'][test],data['y_host'][test],data['z_host'][test])).T
+	coords_sub = np.array((data['x_sub'][test],data['y_sub'][test],data['z_sub'][test])).T
+	mvir_sub = data['mvir_sub'][test]
+	mvir_host = data['mvir_host'][test]
+	vmax_sub = data['vmax_sub'][test]
+	outputfilename0 = 'Bolshoi_subhalo_Mhost14_all.dat'
+	write_subhalos(outputfilename0,coords_sub,mvir_host,mvir_sub)
+	
+	test1 = mvir_sub > 10**11.
+	test2 = (mvir_sub < 10**11.) 
+	print np.shape(mvir_sub[test1]),np.shape(mvir_sub[test2]),np.min(mvir_sub[test2])
+	outputfilename1 = 'Bolshoi_subhalo_Mhost14_above11.dat'
+	outputfilename2 = 'Bolshoi_subhalo_Mhost14_below11.dat'
+	write_subhalos(outputfilename1,coords_sub[test1],mvir_host[test1],mvir_sub[test1],weight=None)
+	write_subhalos(outputfilename2,coords_sub[test2],mvir_host[test2],mvir_sub[test2],weight=None)
+
+#ts: For the case of MD
+	filename = '../data/MultiDark_subhalo_catalog_z0.txt'
+	dt  = np.dtype([('mvir_host','f4'),('vmax_host','f4'),('rvir_host','f4'),('x_host','f4'),('y_host','f4'),('z_host','f4'),('mvir_sub','f4'),('vmax_sub','f4'),('x_sub','f4'),('y_sub','f4'),('z_sub','f4')])
+	data = np.loadtxt(filename,skiprows=1,dtype=dt)
+	print np.shape(data)
+	data = data[(data['mvir_sub']>10**12.1) & (data['vmax_sub']>200.)]
+	print 'finish reading',np.shape(data)
+	test = (data['mvir_host'] > 10.**14.0) 
+	print 'num of subhalos is ',np.shape(data[test])
+	coords_host = np.array((data['x_host'][test],data['y_host'][test],data['z_host'][test])).T
+	coords_sub = np.array((data['x_sub'][test],data['y_sub'][test],data['z_sub'][test])).T
+	mvir_sub = data['mvir_sub'][test]
+	mvir_host = data['mvir_host'][test]
+	vmax_sub = data['vmax_sub'][test]
+	outputfilename0 = 'MultiDark_subhalo_Mhost14_all.dat'
+	write_subhalos(outputfilename0,coords_sub,mvir_host,mvir_sub)
+	
+	test1 = mvir_sub > 10**12.5
+	test2 = (mvir_sub < 10**12.5) 
+	print np.shape(mvir_sub[test1]),np.shape(mvir_sub[test2]),np.min(mvir_sub[test2])
+	outputfilename1 = 'MultiDark_subhalo_Mhost14_above12.5.dat'
+	outputfilename2 = 'MultiDark_subhalo_Mhost14_below12.5.dat'
+	write_subhalos(outputfilename1,coords_sub[test1],mvir_host[test1],mvir_sub[test1],weight=None)
+	write_subhalos(outputfilename2,coords_sub[test2],mvir_host[test2],mvir_sub[test2],weight=None)
+
+#ts: For host halos
+
+	halos = Halos('../../MultiDark/data/raw_data/Bolshoi_halos_z0.dat',Lbox=250.)
+	halos.select_halos()
+	nonEjectID = halos.get_ejectedHalos('/scratch/fas/padmanabhan/ah748/SIMS/Bolshoi/JOBS/ejected_z0/DATA/Bolshoi_halo_ejected_tags.dat',ejected=False)
+
+	order_non = halos.match_haloID2(nonEjectID,halos.haloID)
+	test = (halos.Mvir[order_non] > 10.**11.)& (halos.Mvir[order_non] < 10.**12.)
+
+ 	coords = halos.coords[order_non][test]
+	halos.write_halos('hosthalo_M11to12.dat',coords,halos.Mvir[order_non][test],halos.Vmax[order_non][test],halos.haloID[order_non][test])
+
+#ts: to make a scatter plot
+
+	plt.hexbin(np.log10(mvir_sub),vmax_sub,mincnt=1.)
+	mass = np.linspace(9.,15.,100)
+	plt.plot(mass,calc_Vcir.calc_maxVcir(calc_Vcir.median_c(10.**mass),10.**mass),'r--')
+	plt.xlabel(r'${\rm log}_{10}M_{\rm vir}$')
+	plt.ylabel(r'$V_{\rm max}$[km/s]')
+	plt.axis([9.,14.,0,500])
+	plt.tight_layout()
+	plt.savefig('Bolshoi_vmaxMvir_Mhost14.pdf')
+	plt.clf()
+
+#ts: distance
+    Lbox = 1000.
+    halos = Halos('/home/fas/padmanabhan/ts485/research/MultiDark/code/MultiDark_M12_V200_z0.dat',Lbox=Lbox)
+    haloIDs,dist,Mhost,Msub,coords,concen = halos.calc_subHaloDist()
+    test = (Mhost > 10**14.) & (Msub > 10.**12.2)
+    print np.shape(np.unique(haloIDs[Mhost>10**14.]))
+    ratio_c = np.array([c/calc_Vcir.median_c(M) for c,M in zip(concen,Mhost)])
+    
+    unique_haloID = np.unique(haloIDs[test])
+    print np.shape(unique_haloID)
+    coords_host =  np.empty((np.shape(unique_haloID)[0],3))
+    c_bar =  np.empty((np.shape(unique_haloID)[0]))
+    cc =  np.empty((np.shape(unique_haloID)[0]))
+
+    dist_std =  np.empty((np.shape(unique_haloID)[0]))
+    dist_mean =  np.empty((np.shape(unique_haloID)[0]))
+    mass = np.empty((np.shape(unique_haloID)[0]))
+    richness = np.empty((np.shape(unique_haloID)[0]))
+    
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(haloIDs==j)[0]
+	    dist_mean[i] = np.mean(dist[order])
+	    coords_host[i,0] = coords[order[0],0]
+	    coords_host[i,1] = coords[order[0],1]
+	    coords_host[i,2] = coords[order[0],2]
+	    cc[i] = concen[order[0]]
+	    c_bar[i] = calc_Vcir.median_c(Mhost[order[0]])
+	    dist_std[i] =  np.std(dist[order])
+	    mass[i] = Mhost[order[0]]
+	    richness[i] = len(order)
+	    
+	    
+    print 'finish for-loop'
+    np.savetxt('concen_Rmem_mass_rich.dat',np.array((cc,c_bar,dist_mean,dist_std,mass,richness)).T)
+
+#ts: high/low-Vmax sample
+
+    Lbox = 1000.
+    halos = Halos('/home/fas/padmanabhan/ts485/research/MultiDark/code/MultiDark_M12_V200_z0.dat',Lbox=Lbox)
+
+
+    test0 = (halos.Mvir > 10.**14.)
+    test1 = np.array([vmax > calc_Vcir.calc_maxVcir(calc_Vcir.median_c(mvir),mvir) for vmax,mvir in zip(halos.Vmax[test0],halos.Mvir[test0])])
+    test2 = np.array([not i for i in test1])
+
+    halos.write_halos('MultiDark_hosthalo_M14_upper.dat',halos.coords[test0][test1],halos.Mvir[test0][test1],halos.Vmax[test0][test1],halos.haloID[test0][test1])
+    halos.write_halos('MultiDark_hosthalo_M14_lower.dat',halos.coords[test0][test2],halos.Mvir[test0][test2],halos.Vmax[test0][test2],halos.haloID[test0][test2])
+
+#ts: to generate cluster files to compute P(k) for each cluster
+
+    Lbox = 250.
+    halos = Halos('../../MultiDark/data/raw_data/Bolshoi_halos_z0.dat',Lbox=Lbox)
+
+    haloID,Mhost,Vmax,Rvir,concen,coords_host,subCoords,Msub,vmax_sub = halos.select_subhalos()
+
+    #ts: Obtain relevant information
+    test = (Mhost > 10**14.) & (Msub > 10.**10.4)
+    haloID = haloID[test]
+    Mhost = Mhost[test]
+    Rvir = Rvir[test]
+    coords_host = coords_host[test]
+    subCoords = subCoords[test]
+    Msub = Msub[test]
+
+    uniqueID,order1 = np.unique(haloID, return_index=True)
+
+    order_mass = np.argsort(Mhost[order1])[::-1]
+    haloID4mass = uniqueID[order_mass][:10]
+    uniqueRvir = Rvir[order1][order_mass][:10]
+    mass = Mhost[order1][order_mass][:10]
+
+    for i,j in enumerate(haloID4mass):	    
+	    order = np.where(haloID==j)[0]
+	    coords_diff = subCoords[order]-coords_host[order]
+	    sub_mass = Msub[order]
+	    test = coords_diff > Lbox/2.
+	    coords_diff[test] -= Lbox
+	    num = str(np.shape(coords_diff)[0])
+	    print num,uniqueRvir[i],np.max(coords_diff),np.min(coords_diff)
+	    np.savetxt('Cluster_'+str(i)+'_lambda'+num+'_M'+str(round(np.log10(mass[i]),1))+'.dat',np.array((coords_diff[:,0],coords_diff[:,1],coords_diff[:,2],np.ones(int(num)))).T)
+
+	    np.savetxt('Cluster_'+str(i)+'_lambda'+num+'_M'+str(round(np.log10(mass[i]),1))+'_wWeight.dat',np.array((coords_diff[:,0],coords_diff[:,1],coords_diff[:,2],sub_mass/10**10.4)).T)
+
+
+#ts:extreme Vmax samples
+
+    halos.select_halos()
+    
+    mvir = halos.Mvir
+    test = mvir > 10**14.
+    print np.shape(mvir[test])
+
+
+    outputfilename1 = 'MD_M14_highVmax.dat'
+    outputfilename2 = 'MD_M14_lowVmax.dat'
+    outputfilename3 = 'MD_M14_1sigma_highVmax.dat'
+    outputfilename4 = 'MD_M14_1sigma_lowVmax.dat'
+    subCoords = halos.coords[test]
+    subVmax = halos.Vmax[test]
+    subMvir = halos.Mvir[test]
+    subHaloID = halos.haloID[test]
+
+    test_med1 = np.array([vmax > cv.calc_maxVcir(cv.median_c(mvir),mvir) for vmax,mvir in zip(subVmax,subMvir)])
+    test_med2 = np.array([not i for i in test_med1])
+
+
+    test_sigma1 = np.array([vmax > cv.calc_maxVcir(cv.from_median_c(mvir,sigma=0.12),mvir) for vmax,mvir in zip(subVmax,subMvir)])
+    test_sigma2 =  np.array([vmax < cv.calc_maxVcir(cv.from_median_c(mvir,sigma=-0.12),mvir) for vmax,mvir in zip(subVmax,subMvir)])
+
+    print 'upper ',np.shape(subMvir[test_sigma1])
+    print 'lower ',np.shape(subMvir[test_sigma2])
+
+    plt.plot(np.log10(subMvir[test_med1]),np.log10(subVmax[test_med1]),'.')
+    plt.plot(np.log10(subMvir[test_med2]),np.log10(subVmax[test_med2]),'.')
+    plt.plot(np.log10(subMvir[test_sigma1]),np.log10(subVmax[test_sigma1]),'.')
+    plt.plot(np.log10(subMvir[test_sigma2]),np.log10(subVmax[test_sigma2]),'.')
+    plt.xlabel(r'${\rm log}_{10}M_{\rm vir}$')
+    plt.ylabel(r'${\rm log}_{10}V_{\rm max}$')
+    plt.tight_layout()
+    plt.legend(('high','low','high:1$\sigma$','low:1$\sigma$'))
+    plt.savefig('Mvir_Vmax.png')
+    plt.clf()
+    
+
+    halos.write_halos(outputfilename1,subCoords[test_med1],subMvir[test_med1],subVmax[test_med1],subHaloID[test_med1])
+    halos.write_halos(outputfilename2,subCoords[test_med2],subMvir[test_med2],subVmax[test_med2],subHaloID[test_med2])
+
+
+    halos.write_halos(outputfilename3,subCoords[test_sigma1],subMvir[test_sigma1],subVmax[test_sigma1],subHaloID[test_sigma1])
+    halos.write_halos(outputfilename4,subCoords[test_sigma2],subMvir[test_sigma2],subVmax[test_sigma2],subHaloID[test_sigma2])
+
+#ts: subhalo radial distribution
+
+    haloID_sub,Mhost,Vmax_host,rvir_host,concen,a_form_,coords_host,coords_sub,Mvir_sub,Vmax_sub,spin,x_off,TbyU = halos.select_subhalos()
+
+
+    test0 = (Mhost > 10.**14.)
+    test1 = np.array([vmax > cv.calc_maxVcir(cv.median_c(mvir),mvir) for vmax,mvir in zip(Vmax_host[test0],Mhost[test0])])
+    test2 = np.array([not i for i in test1])
+    dist = np.sqrt(np.sum(np.minimum((coords_host[test0]-coords_sub[test0])**2.,(Lbox-np.abs(coords_host[test0]-coords_sub[test0]))**2.),axis=1))
+    plt.hist(dist[test1]/rvir_host[test0][test1],bins=30,label='high-Vmax',histtype='step',lw=2)
+    plt.hist(dist[test2]/rvir_host[test0][test2],bins=30,label='low-Vmax',histtype='step',lw=2)
+    plt.xlabel(r'$r/R_{\rm vir}$')
+    plt.legend(loc='upper left')
+    plt.tight_layout()
+    plt.savefig('unnormalized_radial.pdf')

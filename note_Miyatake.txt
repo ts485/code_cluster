@@ -1,0 +1,699 @@
+#ts: Samples for Miyatake et al. 2015
+
+    Lbox = 1000.
+    halos = Halos('/home/fas/padmanabhan/ts485/research/MultiDark/code/MultiDark_M12_V200_z0.dat',Lbox=Lbox)
+    #ts: Obtain relevant information
+    haloIDs,dist,Mhost,Msub,coords,concen,dist_2d = halos.calc_subHaloDist()
+    test = (Mhost > 10**14.) & (Msub > 10.**12.2)
+    
+    #ts: Obtain host halos which have subhalos.
+    unique_haloID = np.unique(haloIDs[test])
+    print np.shape(unique_haloID)
+    coords_host =  np.empty((np.shape(unique_haloID)[0],3))
+    dist_mean =  np.empty((np.shape(unique_haloID)[0]))
+    mass = np.empty((np.shape(unique_haloID)[0]))
+    richness = np.empty((np.shape(unique_haloID)[0]))
+    cc = np.empty((np.shape(unique_haloID)[0]))
+
+    tag = np.zeros((np.shape(unique_haloID)[0]))
+    
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(haloIDs==j)[0]
+	    dist_mean[i] = np.mean(dist_2d[order])
+	    coords_host[i,0] = coords[order[0],0]
+	    coords_host[i,1] = coords[order[0],1]
+	    coords_host[i,2] = coords[order[0],2]
+	    mass[i] = Mhost[order[0]]
+	    cc[i] = concen[order[0]]
+	    richness[i] = len(order)
+	    
+    order_mass = np.argsort(mass)[::-1]
+    for i in np.arange(16):
+	    if i < 15:
+		    order = order_mass[1000*i:1000*(i+1)]
+	    else:
+		    order = order_mass[15000:]
+		    print i,np.shape(order)
+	    print np.shape(order)
+	    median_dist = np.median(dist_mean[order])
+	    test = dist_mean[order] > median_dist
+	    print np.shape(test)
+	    tag[order] = 1*test
+
+
+    
+    
+    
+    np.savetxt('tag.dat',np.array((tag,dist_mean)).T)
+    test0 = (tag!=0)
+    test1 = (tag==0)
+    
+    np.savetxt('Miyatake_2d_mass_upper_z0.dat',np.array((coords_host[test0][:,0],coords_host[test0][:,1],coords_host[test0][:,2],np.ones(np.shape(richness[test0])[0]),mass[test0],richness[test0],dist_mean[test0])).T)
+    np.savetxt('Miyatake_2d_mass_lower_z0.dat',np.array((coords_host[test1][:,0],coords_host[test1][:,1],coords_host[test1][:,2],np.ones(np.shape(richness[test1])[0]),mass[test1],richness[test1],dist_mean[test1])).T)
+    print np.shape(richness[test0]),np.shape(richness[test1]),np.shape(richness)
+	    
+
+#ts: cluster classification for Miyatake
+
+    Lbox = 1000.
+    halos = Halos('MultiDark_Frank_z0.dat',Lbox=Lbox)
+    haloIDs,dist,dist_xy,dist_yz,dist_zx,Mhost,Mvir_sub,Vmax_sub,coords,concen,a_form,spin,x_off,TbyU,Vmax = halos.calc_subHaloDist()
+    
+
+    test = (Mhost > 10**13.5) 
+    
+    #ts: Obtain host halos which have subhalos.
+    unique_haloID = np.unique(haloIDs[test])
+    print np.shape(unique_haloID)
+    coords_host =  np.empty((np.shape(unique_haloID)[0],3))
+    dist_mean =  np.empty((np.shape(unique_haloID)[0]))
+    xy_mean =  np.empty((np.shape(unique_haloID)[0]))
+    yz_mean =  np.empty((np.shape(unique_haloID)[0]))
+    zx_mean =  np.empty((np.shape(unique_haloID)[0]))
+    mass = np.empty((np.shape(unique_haloID)[0]))
+    richness = np.empty((np.shape(unique_haloID)[0]))
+    aform = np.empty((np.shape(unique_haloID)[0]))
+    cc = np.empty((np.shape(unique_haloID)[0]))
+    #ts: Only for MD
+    spins = np.empty((np.shape(unique_haloID)[0]))
+    xs_off =  np.empty((np.shape(unique_haloID)[0]))
+    TbyUs =  np.empty((np.shape(unique_haloID)[0]))
+    Vmaxes =  np.empty((np.shape(unique_haloID)[0]))
+
+   
+
+    tag = np.zeros((np.shape(unique_haloID)[0]))
+    tag_xy = np.zeros((np.shape(unique_haloID)[0]))
+    
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(haloIDs==j)[0]
+	    dist_mean[i] = np.mean(dist[order])
+	    xy_mean[i] = np.mean(dist_xy[order])
+	    yz_mean[i] = np.mean(dist_yz[order])
+	    zx_mean[i] = np.mean(dist_zx[order])
+	    coords_host[i,0] = coords[order[0],0]
+	    coords_host[i,1] = coords[order[0],1]
+	    coords_host[i,2] = coords[order[0],2]
+	    mass[i] = Mhost[order[0]]
+	    cc[i] = concen[order[0]]
+	    aform[i] = a_form[order[0]]
+	    richness[i] = len(order)
+	    spins[i] = spin[order[0]]
+	    xs_off[i] = x_off[order[0]]
+	    TbyUs[i] = TbyU[order[0]]
+	    Vmaxes[i] = Vmax[order[0]]
+	    
+    
+    message = '#haloID, Mvir, Vmax, richness, dist_3d, dist_xy, dist_yz, dist_zx, a_form, c, spin, x_off, virialRatio, x, y, z'
+    fmt = '%9d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f'
+    outputfilename = 'MD_Frank_M13.5_cluster_z0.dat'
+    #np.savetxt(outputfilename,np.array((unique_haloID,mass,Vmaxes,richness,dist_mean,xy_mean,yz_mean,zx_mean,aform,cc,spins,xs_off,TbyUs,coords_host[:,0],coords_host[:,1],coords_host[:,2])).T,header = message,fmt=fmt)
+
+
+    order_mass = np.argsort(mass)[::-1]
+    dist_bin = np.empty(16)
+    xy_bin = np.empty(16)
+    yz_bin = np.empty(16)
+    zx_bin = np.empty(16)
+    mass_bin = np.empty(16)
+    rich_bin = np.empty(16)
+    aform_bin = np.empty(16)
+    cc_bin = np.empty(16)
+
+    for i in np.arange(16):
+	    if i < 15:
+		    order = order_mass[1000*i:1000*(i+1)]
+	    else:
+		    order = order_mass[15000:]
+		    print i,np.shape(order)
+	    print np.shape(order)
+	    dist_bin[i] = np.median(dist_mean[order])
+	    xy_bin[i] = np.median(xy_mean[order])
+	    yz_bin[i] = np.median(yz_mean[order])
+	    zx_bin[i] = np.median(zx_mean[order])
+	    mass_bin[i] = np.median(mass[order])
+	    rich_bin[i] = np.median(richness[order])
+	    aform_bin[i] = np.median(aform[order])
+	    cc_bin[i] = np.median(cc[order])
+
+    message = '#Mvir,richness, dist_3d, dist_xy, dist_yz, dist_zx, a_form, c'
+    fmt = '%f %f %f %f %f %f %f %f'
+    np.savetxt('MD_massFunction_z0.dat',np.array((mass_bin,rich_bin,dist_bin,xy_bin,yz_bin,zx_bin,aform_bin,cc_bin)).T)
+
+
+
+    test0 = (tag!=0)
+    test1 = (tag==0)
+    
+    #np.savetxt('Miyatake_3d_rich_upper_z0.dat',np.array((coords_host[test0][:,0],coords_host[test0][:,1],coords_host[test0][:,2],np.ones(np.shape(richness[test0])[0]),mass[test0],Vmaxes[test0],dist_mean[test0],richness[test0],cc[test0],aform[test0],xs_off[test0])).T)
+    #np.savetxt('Miyatake_3d_rich_lower_z0.dat',np.array((coords_host[test1][:,0],coords_host[test1][:,1],coords_host[test1][:,2],np.ones(np.shape(richness[test1])[0]),mass[test1],Vmaxes[test1],dist_mean[test1],richness[test1],cc[test1],aform[test1],xs_off[test1])).T)
+    #np.savetxt('Miyatake_3d_rich_all_z0.dat',np.array((coords_host[:,0],coords_host[:,1],coords_host[:,2],np.ones(np.shape(richness)[0]),mass,Vmaxes,dist_mean,richness,cc,aform,xs_off)).T)
+    print np.shape(richness[test0]),np.shape(richness[test1]),np.shape(richness)
+	  
+    plt.plot(richness[test0],dist_mean[test0],'.',label=r'$large-<R_{\rm mem}>$')
+    plt.plot(richness[test1],dist_mean[test1],'.',label=r'$small-<R_{\rm mem}>$')
+    plt.xlabel(r'$\lambda$',fontsize=25)
+    plt.ylabel(r'$<R_{\rm mem}>[h^{-1} {\rm Mpc}]$',fontsize=25)
+    plt.legend(fontsize=15)
+    plt.tight_layout()
+    plt.savefig('MD_3d_Nsub20_rich_Rmem.png')
+    plt.clf()
+
+
+
+#ts: mass resolution1
+
+    Lbox = 250.
+    halos = Halos('/home/fas/padmanabhan/ts485/research/MultiDark/data/raw_data/Bolshoi_halos_z0_wTbyU.dat',Lbox=Lbox)
+    haloID,dist,Mvir_host,Mvir_sub,coords_host,concen,a_form,dist,dist_xy = halos.calc_subHaloDist()
+    test = (Mvir_host > 10**14.)&(Mvir_sub>10**12.)
+    
+    #ts: Obtain host halos which have subhalos.
+    unique_haloID = np.unique(haloID[test])
+    print np.shape(unique_haloID)
+    coords_host =  np.empty((np.shape(unique_haloID)[0],3))
+    dist_mean =  np.empty((np.shape(unique_haloID)[0]))
+    xy_mean =  np.empty((np.shape(unique_haloID)[0]))
+    mass = np.empty((np.shape(unique_haloID)[0]))
+    richness = np.empty((np.shape(unique_haloID)[0]))
+   
+
+    
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(haloID==j)[0]
+	    dist_mean[i] = np.mean(dist[order])
+	    xy_mean[i] = np.mean(dist_xy[order])
+	    mass[i] = Mvir_host[order[0]]
+	    richness[i] = len(order)
+
+
+    test2 =  (Mvir_sub > 10**12.)
+    
+    unique_haloID = np.unique(haloID[test])
+    coords_host2 =  np.empty((np.shape(unique_haloID)[0],3))
+    dist_mean2 =  np.empty((np.shape(unique_haloID)[0]))
+    xy_mean2 =  np.empty((np.shape(unique_haloID)[0]))
+    mass2 = np.empty((np.shape(unique_haloID)[0]))
+    richness2 = np.empty((np.shape(unique_haloID)[0]))
+      
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(haloID[test2]==j)[0]
+	    dist_mean2[i] = np.mean(dist[test2][order])
+	    xy_mean2[i] = np.mean(dist_xy[test2][order])
+	    richness2[i] = len(order)
+
+    fig,(ax0,ax1) = plt.subplots(ncols=2,figsize=(8,4))
+    ax0.plot(richness2,dist_mean-dist_mean2,'.')
+    ax1.plot(richness-richness2,dist_mean-dist_mean2,'.')
+    ax0.set_xlabel(r'$\lambda(>10^12{\rm M}_{\odot}/h)$')
+    ax0.set_ylabel(r'$R_{mem}(all)-R_{mem}(>10^12{\rm M}_{\odot}/h)$')
+    ax1.set_xlabel(r'$\lambda(all)-\lambda(>10^12{\rm M}_{\odot}/h)$')
+    ax1.set_ylabel(r'$R_{mem}(all)-R_{mem}(>10^12{\rm M}_{\odot}/h)$')
+    plt.tight_layout()
+    plt.savefig('massResolution_Rmem3d.pdf')
+    plt.clf()
+
+
+    fig,(ax0,ax1) = plt.subplots(ncols=2,figsize=(8,4))
+    ax0.plot(richness2,xy_mean-xy_mean2,'.')
+    ax1.plot(richness-richness2,xy_mean-xy_mean2,'.')
+    ax0.set_xlabel(r'$\lambda(>10^12{\rm M}_{\odot}/h)$')
+    ax0.set_ylabel(r'$R_{mem}(all)-R_{mem}(>10^12{\rm M}_{\odot}/h)$')
+    ax1.set_xlabel(r'$\lambda(all)-\lambda(>10^12{\rm M}_{\odot}/h)$')
+    ax1.set_ylabel(r'$R_{mem}(all)-R_{mem}(>10^12{\rm M}_{\odot}/h)$')
+    plt.tight_layout()
+    plt.savefig('massResolution_xy.pdf')
+    plt.clf()
+
+#ts:mass resolution 2
+
+    Lbox = 250.
+    halos = Halos('/home/fas/padmanabhan/ts485/research/MultiDark/data/raw_data/Bolshoi_halos_z0_wTbyU.dat',Lbox=Lbox)
+    haloID,dist,Mvir_host,Mvir_sub,coords_host,concen,a_form,dist,dist_xy = halos.calc_subHaloDist()
+    test = (Mvir_host > 10**14.)&(Mvir_sub>10**12.)
+    
+    #ts: Obtain host halos which have subhalos.
+    unique_haloID = np.unique(haloID[test])
+    print np.shape(unique_haloID)
+    coords_host =  np.empty((np.shape(unique_haloID)[0],3))
+    dist_mean =  np.empty((np.shape(unique_haloID)[0]))
+    xy_mean =  np.empty((np.shape(unique_haloID)[0]))
+    mass = np.empty((np.shape(unique_haloID)[0]))
+    richness = np.empty((np.shape(unique_haloID)[0]))
+   
+
+    
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(haloID==j)[0]
+	    dist_mean[i] = np.mean(dist[order])
+	    xy_mean[i] = np.mean(dist_xy[order])
+	    mass[i] = Mvir_host[order[0]]
+	    richness[i] = len(order)
+
+
+    test2 =  (Mvir_sub > 10**12.)
+    
+    unique_haloID = np.unique(haloID[test])
+    coords_host2 =  np.empty((np.shape(unique_haloID)[0],3))
+    dist_mean2 =  np.empty((np.shape(unique_haloID)[0]))
+    xy_mean2 =  np.empty((np.shape(unique_haloID)[0]))
+    mass2 = np.empty((np.shape(unique_haloID)[0]))
+    richness2 = np.empty((np.shape(unique_haloID)[0]))
+      
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(haloID[test2]==j)[0]
+	    dist_mean2[i] = np.mean(dist[test2][order])
+	    xy_mean2[i] = np.mean(dist_xy[test2][order])
+	    richness2[i] = len(order)
+
+    order_mass = np.argsort(mass)[::-1]
+    mass_bin = np.empty(15)
+    dist_bin = np.empty(15)
+    xy_bin = np.empty(15)
+    dist2_bin = np.empty(15)
+    xy2_bin = np.empty(15)
+    rich_bin = np.empty(15)
+
+    for i in np.arange(15):
+	    if i < 14:
+		    order = order_mass[20*i:20*(i+1)]
+	    else:
+		    order = order_mass[280:]
+		    print i,np.shape(order)
+	    print np.shape(order)
+	    mass_bin[i] = np.median(mass[order])
+	    dist_bin[i] = np.median(dist_mean[order])
+	    xy_bin[i] = np.median(xy_mean[order])
+	    dist2_bin[i] = np.median(dist_mean2[order])
+	    xy2_bin[i] = np.median(xy_mean2[order])
+	    rich_bin[i] = np.median(richness[order])
+
+    
+    ratio_dist = np.array([rmem/np.interp(mvir,np.log10(mass_bin)[::-1],dist_bin[::-1]) for rmem,mvir in zip(dist_mean,np.log10(mass))])
+    ratio_dist2 = np.array([rmem/np.interp(mvir,np.log10(mass_bin)[::-1],dist2_bin[::-1]) for rmem,mvir in zip(dist_mean2,np.log10(mass))])
+    ratio_xy = np.array([rmem/np.interp(mvir,np.log10(mass_bin)[::-1],xy_bin[::-1]) for rmem,mvir in zip(xy_mean,np.log10(mass))])
+    ratio_xy2 = np.array([rmem/np.interp(mvir,np.log10(mass_bin)[::-1],xy2_bin[::-1]) for rmem,mvir in zip(xy_mean2,np.log10(mass))])
+
+    fig,(ax0,ax1) = plt.subplots(ncols=2,figsize=(8,4))
+    ax0.plot(ratio_dist,ratio_dist2,'.')
+    ax0.set_xlabel(r'$R_{mem}/\overline{R_{mem}}(all)$')
+    ax0.set_ylabel(r'$R_{mem}/\overline{R_{mem}}(>10^12{\rm M}_{\odot}/h)$')
+    ax1.plot(ratio_xy,ratio_xy2,'.')
+    ax1.set_xlabel(r'$R_{xy}/\overline{R_{xy}}(all)$')
+    ax1.set_ylabel(r'$R_{xy}/\overline{R_{xy}}(>10^12{\rm M}_{\odot}/h)$')
+    plt.tight_layout()
+    plt.savefig('massResolution.pdf')
+
+#ts: make sample files for plots
+
+    dt = np.dtype([('haloID','i8'),('Mvir','f4'),('Vmax','f4'),('rich','f4'),('dist','f4'),('xy','f4'),('yz','f4'),('zx','f4'),('a_form','f4'),('concen','f4'),('spin','f4'),('x_off','f4'),('TbyU','f4'),('x','f4'),('y','f4'),('z','f4')])
+    data = np.loadtxt('MD_Frank_M13.5_cluster_z0.dat',dtype=dt)
+
+    plt.hexbin(np.log10(data['Mvir']),data['rich'],mincnt=1)
+    plt.plot(np.linspace(13.5,15.5,20),10.*np.ones(20),'c--')
+    plt.axis([13.5,15.5,0,140])
+    plt.xlabel(r'${\rm log}_{10}M_{\rm vir}[h^{-1}{\rm M}_{\odot}]$',fontsize=25)
+    plt.ylabel(r'$\lambda$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('MD_mass_richness.pdf')
+    plt.clf()
+	    
+    
+
+    test_cut = (data['rich'] > 10) 
+    richness = data['rich'][test_cut]
+    mass = data['Mvir'][test_cut]
+    dist_mean = data['dist'][test_cut]
+    xy_mean = data['xy'][test_cut]
+    coords_host = np.array((data['x'][test_cut],data['y'][test_cut],data['z'][test_cut])).T
+    cc = data['concen'][test_cut]
+    aform = data['a_form'][test_cut]
+    xs_off = data['x_off'][test_cut]
+    Vmaxes = data['Vmax'][test_cut]
+    
+
+
+    tag = np.zeros((np.shape(richness)[0]))
+    tag_xy = np.zeros((np.shape(richness)[0]))
+    order_mass = np.argsort(richness)[::-1]
+
+
+    dist_bin = np.empty(16)
+    xy_bin = np.empty(16)
+    mass_bin = np.empty(16)
+    rich_bin = np.empty(16)
+    aform_bin = np.empty(16)
+    cc_bin = np.empty(16)
+
+    for i in np.arange(16):
+	    if i < 15:
+		    order = order_mass[760*i:760*(i+1)]
+	    else:
+		    order = order_mass[10640:]
+		    print i,np.shape(order)
+	    print np.shape(order)
+	    dist_bin[i] = np.median(dist_mean[order])
+	    test = dist_mean[order] > dist_bin[i]
+	    print np.shape(test)
+	    tag[order] = 1*test
+	    xy_bin[i] = np.median(xy_mean[order])
+	    test2 = xy_mean[order] > xy_bin[i]
+	    print np.shape(test)
+	    tag_xy[order] = 1*test2
+
+	    mass_bin[i] = np.median(mass[order])
+	    rich_bin[i] = np.median(richness[order])
+	    aform_bin[i] = np.median(aform[order])
+	    cc_bin[i] = np.median(cc[order])
+
+    message = '#haloID, tag, tag_xy, Mvir, Vmax, richness, dist_3d, dist_xy, dist_yz, dist_zx, a_form, c, spin, x_off, virialRatio, x, y, z'
+    fmt = '%9d %2d %2d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f'
+    outputfilename = 'MD_Frank_rich10_cluster_z0.dat'
+    print 'hello',np.shape(data[test_cut]),np.shape(tag)
+    #np.savetxt(outputfilename,np.array((data['haloID'][test_cut],tag,tag_xy,data['Mvir'][test_cut],data['Vmax'][test_cut],data['rich'][test_cut],data['dist'][test_cut],data['xy'][test_cut],data['yz'][test_cut],data['zx'][test_cut],data['a_form'][test_cut],data['concen'][test_cut],data['spin'][test_cut],data['x_off'][test_cut],data['TbyU'][test_cut],data['x'][test_cut],data['y'][test_cut],data['z'][test_cut])).T,header = message,fmt=fmt)
+
+
+    """message = '#Mvir,richness, dist_3d, dist_xy, a_form, c'
+    fmt = '%f %f %f %f %f %f %f %f'
+    np.savetxt('MD_rich_massFunction_z0.dat',np.array((mass_bin,rich_bin,dist_bin,xy_bin,aform_bin,cc_bin)).T)"""
+
+#ts: Miscentering
+
+    Lbox = 1000.
+    halos = Halos('MultiDark_Frank_z0.dat',Lbox=Lbox)
+    haloIDs,Mhost,vmax,rvir,concen,a_form,coords_host,coords_sub,Mvir_sub,Vmax_sub,spin,x_off,TbyU,tag_sub,subhalo_tag,order = halos. select_subhalos()
+    dt = np.dtype([('haloID','i8'),('hostFlag','i8'),('acc_inst','f4'),('acc_100','f4'),('acc_tdyn','f4')])
+    data = np.loadtxt('MD_Frank_AccRate_z0.dat',dtype=dt)
+    accRate_sub = data['acc_inst'][data['hostFlag']!=-1][tag_sub]
+    accRate_host = data['acc_inst'][data['hostFlag']==-1][subhalo_tag][order]
+
+    print haloIDs[:10]
+    print data['hostFlag'][data['hostFlag']!=-1][tag_sub][:10]
+    print data['haloID'][data['hostFlag']==-1][subhalo_tag][order][:10]
+    test = Mhost > 10**13.5
+    accRate_sub = accRate_sub[test]
+    accRate_host = accRate_host[test]
+    haloIDs = haloIDs[test]
+    rvir = rvir[test]
+    concen = concen[test]
+    tag_offCenter = np.zeros(np.shape(haloIDs)[0])
+    offCenter = np.zeros(np.shape(haloIDs)[0])
+    off_haloID = np.zeros(np.shape(haloIDs)[0])
+    off_accRate = np.zeros(np.shape(haloIDs)[0])
+    
+    for i,halo_id in enumerate(haloIDs):
+	    if accRate_sub[i] > accRate_host[i]:
+		    tag_offCenter[i] = 1
+		    offCenter[i] = np.sqrt(np.sum((coords_host[i]-coords_sub[i])**2.))
+		    off_haloID[i] = halo_id
+		    off_accRate[i] = accRate_sub[i]
+
+    plt.hist(offCenter[offCenter!=0],bins=50,range=[0.,2.],histtype='step',lw=3,label='all')
+		    
+    coords_off = coords_sub[tag_offCenter==1]
+    coords_cen = coords_host[tag_offCenter==1]
+    off_haloID = off_haloID[off_haloID!=0]
+    off_rvir = rvir[off_haloID!=0]
+    off_concen = concen[off_haloID!=0]
+    print 'before ',np.shape(coords_off),np.shape(off_haloID)
+    off_haloID_unique,indices = np.unique(off_haloID,return_index=True)
+    coords_off_unique = np.empty((np.shape(off_haloID_unique)[0],3))
+    coords_cen_unique = np.empty((np.shape(off_haloID_unique)[0],3))
+    for i,j in enumerate(off_haloID_unique):
+	    order = np.where(off_haloID == j)
+	    coords_off_unique[i,0] = coords_off[order][np.argmax(off_accRate[order]),0]
+	    coords_off_unique[i,1] = coords_off[order][np.argmax(off_accRate[order]),1]
+	    coords_off_unique[i,2] = coords_off[order][np.argmax(off_accRate[order]),2]
+	    coords_cen_unique[i,0] = coords_cen[order][np.argmax(off_accRate[order]),0]
+	    coords_cen_unique[i,1] = coords_cen[order][np.argmax(off_accRate[order]),1]
+	    coords_cen_unique[i,2] = coords_cen[order][np.argmax(off_accRate[order]),2]
+	    
+    plt.hist(np.sqrt(np.sum((coords_cen_unique-coords_off_unique)**2.,axis=1)),bins=50,range=[0.,2.],histtype='step',lw=3,label='unique')
+    plt.legend()
+    plt.xlabel(r'$r_{\rm off}[h^{-1}{\rm Mpc}]$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('dist_miscentering.pdf')
+    plt.clf()
+   
+    print 'after ',np.shape(coords_off_unique)
+    message = '#haloID, Rvir, concen, x_off, y_off, z_off'
+    fmt = '%9d %f %f %f %f %f'
+    np.savetxt('MD_Frank_miscentering.dat',np.array((off_haloID_unique,off_rvir[indices],1000.*off_concen[indices],coords_off_unique[:,0],coords_off_unique[:,1],coords_off_unique[:,2])).T,header=message,fmt=fmt)
+    print 'done!'
+
+#ts: Minf/Macc subhalo mass cut corresponding to RedMapper
+
+    
+    Lbox = 1000.
+    #halos = Halos_MD('MultiDark_Frank_z0.dat',Lbox=Lbox)
+    halos = Halos_MD('test.dat',Lbox=Lbox)
+    dist,dist_xy =  halos.calc_subHaloDist()
+    print np.shape(dist),np.shape(halos.Mvir_sub)
+    #test = (halos.Macc_sub > 10**11.5) & (halos.Mvir_host>10**13.5)
+    test = (halos.Mvir_host>10**13.5)
+    print dir(halos)
+    print np.max(np.log10(halos.Macc_sub)),np.max(np.log10(halos.Mvir_host))
+
+    plt.hist(dist[test],bins=50,histtype='step',lw=2.5,label=r'$M_{\rm inf}>10^11.5[h^{-1}{\rm M}_{\odot}]$')
+    check0 = (halos.Mvir_sub > 10**11.5) & (halos.Mvir_host>10**13.5)
+    plt.hist(dist[check0],bins=50,histtype='step',lw=2.5,label=r'$M_{\rm vir,0}>10^11.5[h^{-1}{\rm M}_{\odot}]$')
+    plt.legend(fontsize=20)
+    plt.xlabel(r'$r[h^{-1}{\rm Mpc}]$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('MD_radialdist.pdf')
+    plt.clf()
+
+    plt.hist(dist[test]/halos.Rvir_host[test],bins=50,histtype='step',lw=2.5,label=r'$M_{\rm inf}>10^11.5[h^{-1}{\rm M}_{\odot}]$')
+    plt.hist(dist[check0]/halos.Rvir_host[check0],bins=50,histtype='step',lw=2.5,label=r'$M_{\rm vir,0}>10^11.5[h^{-1}{\rm M}_{\odot}]$')
+    plt.legend(fontsize=20)
+    plt.xlabel(r'$r/R_{\rm vir}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('MD_radialdist2.pdf')
+    plt.clf()
+
+
+    #ts: Obtain host halos which have subhalos.
+    unique_haloID = np.unique(halos.haloID[test])
+    coords_host =  np.empty((np.shape(unique_haloID)[0],3))
+    dist_mean =  np.empty((np.shape(unique_haloID)[0]))
+    xy_mean =  np.empty((np.shape(unique_haloID)[0]))
+    mass = np.empty((np.shape(unique_haloID)[0]))
+    richness = np.empty((np.shape(unique_haloID)[0]))
+    aform = np.empty((np.shape(unique_haloID)[0]))
+    cc = np.empty((np.shape(unique_haloID)[0]))
+    #ts: Only for MD
+    spins = np.empty((np.shape(unique_haloID)[0]))
+    xs_off =  np.empty((np.shape(unique_haloID)[0]))
+    TbyUs =  np.empty((np.shape(unique_haloID)[0]))
+    Vmaxes =  np.empty((np.shape(unique_haloID)[0]))
+
+   
+
+    tag = np.zeros((np.shape(unique_haloID)[0]))
+    tag_xy = np.zeros((np.shape(unique_haloID)[0]))
+    
+    for i,j in enumerate(unique_haloID):
+	    order = np.where(halos.haloID==j)[0]
+	    dist_mean[i] = np.mean(dist[order])
+	    xy_mean[i] = np.mean(dist_xy[order])
+	    coords_host[i,0] = halos.coords[order[0],0]
+	    coords_host[i,1] = halos.coords[order[0],1]
+	    coords_host[i,2] = halos.coords[order[0],2]
+	    mass[i] = halos.Mvir_host[order[0]]
+	    cc[i] = halos.concen_host[order[0]]
+	    aform[i] = halos.a_form_host[order[0]]
+	    richness[i] = len(order)
+	    spins[i] = halos.spin_host[order[0]]
+	    xs_off[i] = halos.x_off_host[order[0]]
+	    TbyUs[i] = halos.TbyU_host[order[0]]
+	    Vmaxes[i] = halos.Vmax_host[order[0]]
+
+    
+	    
+    
+    message = '#haloID, Mvir, Vmax, richness, dist_3d, dist_xy, dist_yz, dist_zx, a_form, c, spin, x_off, virialRatio, x, y, z'
+    fmt = '%9d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f'
+    outputfilename = 'MD_Frank_Macc11.5_cluster_z0.dat'
+    np.savetxt(outputfilename,np.array((unique_haloID,mass,Vmaxes,richness,dist_mean,xy_mean,yz_mean,zx_mean,aform,cc,spins,xs_off,TbyUs,coords_host[:,0],coords_host[:,1],coords_host[:,2])).T,header = message,fmt=fmt)
+
+    plt.hexbin(np.log10(mass),richness,mincnt=1)
+    plt.xlabel(r'${\rm log}_{10}M_{\rm vir}[h^{-1}{\rm M}_{\odot}]$',fontsize=25)
+    plt.ylabel(r'$\lambda$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('MD_mass_richness_Macc11.5.pdf')
+    plt.clf()
+
+    print 'richness > 0: ',np.shape(richness[richness>0])
+    print 'richness > 5: ',np.shape(richness[richness>5])
+    print 'richness > 10: ',np.shape(richness[richness>10])
+    print 'richness > 15: ',np.shape(richness[richness>15])
+    order_mass = np.argsort(richness)[::-1]
+    dist_bin = np.empty(16)
+    xy_bin = np.empty(16)
+    yz_bin = np.empty(16)
+    zx_bin = np.empty(16)
+    mass_bin = np.empty(16)
+    rich_bin = np.empty(16)
+    aform_bin = np.empty(16)
+    cc_bin = np.empty(16)
+
+    """for i in np.arange(16):
+	    if i < 15:
+		    order = order_mass[1000*i:1000*(i+1)]
+	    else:
+		    order = order_mass[15000:]
+		    print i,np.shape(order)
+	    print np.shape(order)
+	    dist_bin[i] = np.median(dist_mean[order])
+	    xy_bin[i] = np.median(xy_mean[order])
+	    yz_bin[i] = np.median(yz_mean[order])
+	    zx_bin[i] = np.median(zx_mean[order])
+	    mass_bin[i] = np.median(mass[order])
+	    rich_bin[i] = np.median(richness[order])
+	    aform_bin[i] = np.median(aform[order])
+	    cc_bin[i] = np.median(cc[order])
+
+    message = '#Mvir,richness, dist_3d, dist_xy, dist_yz, dist_zx, a_form, c'
+    fmt = '%f %f %f %f %f %f %f %f'
+    np.savetxt('MD_Frank_Macc11.5_massFunction_z0.dat',np.array((mass_bin,rich_bin,dist_bin,xy_bin,yz_bin,zx_bin,aform_bin,cc_bin)).T)
+
+
+
+    test0 = (tag!=0)
+    test1 = (tag==0)
+    
+    np.savetxt('Miyatake_Macc11.5_3d_rich_upper_z0.dat',np.array((coords_host[test0][:,0],coords_host[test0][:,1],coords_host[test0][:,2],np.ones(np.shape(richness[test0])[0]),mass[test0],Vmaxes[test0],dist_mean[test0],richness[test0],cc[test0],aform[test0],xs_off[test0])).T)
+    np.savetxt('Miyatake_Macc11.5_3d_rich_lower_z0.dat',np.array((coords_host[test1][:,0],coords_host[test1][:,1],coords_host[test1][:,2],np.ones(np.shape(richness[test1])[0]),mass[test1],Vmaxes[test1],dist_mean[test1],richness[test1],cc[test1],aform[test1],xs_off[test1])).T)
+    np.savetxt('Miyatake_Macc11.5_3d_rich_all_z0.dat',np.array((coords_host[:,0],coords_host[:,1],coords_host[:,2],np.ones(np.shape(richness)[0]),mass,Vmaxes,dist_mean,richness,cc,aform,xs_off)).T)
+    print np.shape(richness[test0]),np.shape(richness[test1]),np.shape(richness)
+	  
+    plt.plot(richness[test0],dist_mean[test0],'.',label=r'$large-<R_{\rm mem}>$')
+    plt.plot(richness[test1],dist_mean[test1],'.',label=r'$small-<R_{\rm mem}>$')
+    plt.xlabel(r'$\lambda$',fontsize=25)
+    plt.ylabel(r'$<R_{\rm mem}>[h^{-1} {\rm Mpc}]$',fontsize=25)
+    plt.legend(fontsize=15)
+    plt.tight_layout()
+    plt.savefig('MD_3d_Nsub20_rich_Rmem.png')
+    plt.clf()"""
+
+
+#ts: Miscentering 2
+
+    Lbox = 1000.
+    halos = match_haloID.Halos_MD('MultiDark_Frank_z0.dat',Lbox=Lbox)
+    halos.select_subhalos()
+    test = (halos.Mvir_host > 10**13.5)&(halos.Macc_sub>10**11.5)
+
+    accRate_sub = halos.Acc_Rate_sub[test]
+    accRate_host = halos.Acc_Rate_Inst_host[test]
+    haloIDs = halos.haloID_host[test]
+    coords_host = halos.coords_host[test]
+    coords_sub = halos.coords_sub[test]
+    rvir = halos.Rvir_host[test]
+    concen = halos.concen_host[test]
+    tag_offCenter = np.zeros(np.shape(haloIDs)[0])
+    offCenter = np.zeros(np.shape(haloIDs)[0])
+    off_haloID = np.zeros(np.shape(haloIDs)[0])
+    off_accRate = np.zeros(np.shape(haloIDs)[0])
+    
+    for i,halo_id in enumerate(haloIDs):
+	    if accRate_sub[i] > accRate_host[i]:
+		    tag_offCenter[i] = 1
+		    offCenter[i] = np.sqrt(np.sum((coords_host[i]-coords_sub[i])**2.))
+		    off_haloID[i] = halo_id
+		    off_accRate[i] = accRate_sub[i]
+
+    plt.hist(offCenter[offCenter!=0],bins=50,range=[0.,2.],histtype='step',lw=3,label='all')
+    print np.shape(coords_sub),np.shape(tag_offCenter)  
+    test2 = tag_offCenter==1
+    coords_off = coords_sub[test2]
+    coords_cen = coords_host[test2]
+    off_haloID = off_haloID[test2]
+    off_rvir = rvir[test2]
+    off_concen = concen[test2]
+    print 'before ',np.shape(coords_off),np.shape(off_haloID)
+    off_haloID_unique,indices = np.unique(off_haloID,return_index=True)
+    coords_off_unique = np.empty((np.shape(off_haloID_unique)[0],3))
+    coords_cen_unique = np.empty((np.shape(off_haloID_unique)[0],3))
+    for i,j in enumerate(off_haloID_unique):
+	    order = np.where(off_haloID == j)
+	    coords_off_unique[i,0] = coords_off[order][np.argmax(off_accRate[order]),0]
+	    coords_off_unique[i,1] = coords_off[order][np.argmax(off_accRate[order]),1]
+	    coords_off_unique[i,2] = coords_off[order][np.argmax(off_accRate[order]),2]
+	    coords_cen_unique[i,0] = coords_cen[order][np.argmax(off_accRate[order]),0]
+	    coords_cen_unique[i,1] = coords_cen[order][np.argmax(off_accRate[order]),1]
+	    coords_cen_unique[i,2] = coords_cen[order][np.argmax(off_accRate[order]),2]
+	    
+    plt.hist(np.sqrt(np.sum((coords_cen_unique-coords_off_unique)**2.,axis=1)),bins=50,range=[0.,2.],histtype='step',lw=3,label='unique')
+    plt.legend()
+    plt.xlabel(r'$r_{\rm off}[h^{-1}{\rm Mpc}]$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('dist_miscentering.pdf')
+    plt.clf()
+    print 'before',coords_cen_unique[5]
+   
+    print 'after ',coords_off_unique[5]
+   """ message = '#haloID, Rvir, concen, x_off, y_off, z_off'
+    fmt = '%9d %f %f %f %f %f'
+    np.savetxt('MD_Frank_miscentering2.dat',np.array((off_haloID_unique,off_rvir[indices],1000.*off_concen[indices],coords_off_unique[:,0],coords_off_unique[:,1],coords_off_unique[:,2])).T,header=message,fmt=fmt)
+    message = '#haloID, Rvir, concen, x_cen, y_cen, z_cen'
+    fmt = '%9d %f %f %f %f %f'
+    #np.savetxt('MD_Frank_miscentering_check.dat',np.array((off_haloID_unique,off_rvir[indices],1000.*off_concen[indices],coords_cen_unique[:,0],coords_cen_unique[:,1],coords_cen_unique[:,2])).T,header=message,fmt=fmt)
+    print 'done!'
+
+
+    message = '#haloID, tag, tag_xy, Mvir, Vmax, richness, dist_3d, dist_xy, dist_yz, dist_zx, a_form, c, spin, x_off, virialRatio, x, y, z'
+    fmt = '%9d %2d %2d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f'
+    dt =  np.dtype([('haloID','i8'),('tag','i4'),('tag_xy','i4'),('Mvir','f4'),('Vmax','f4'),('richness','f4'),('dist','f4'),('dist_xy','f4'),('dist_yz','f4'),('dist_zx','f4'),('a_form','f4'),('concen','f4'),('spin','f4'),('x_off','f4'),('TbyU','f4'),('x','f4'),('y','f4'),('z','f4')])
+    data = np.loadtxt('MD_Frank_rich10_cluster_z0.dat',dtype=dt)
+    dt2 =  np.dtype([('haloID','i8'),('Rvir','f4'),('concen','f4'),('x_off','f4'),('y_off','f4'),('z_off','f4')])
+    data_off = np.loadtxt('MD_Frank_miscentering2.dat',dtype=dt2)
+    print 'There are ',np.shape(data_off)[0],' halos which are miscentering.'
+
+    haloID,indices = np.unique(haloIDs,return_index=True)
+    coords_off = coords_host
+    
+    
+    coords = np.array((data['x'],data['y'],data['z'])).T
+    haloID = data['haloID']
+ 
+
+    for i,id_off in enumerate(data_off['haloID']):
+	    place = np.where(haloIDs==id_off)
+            place2 = np.where(haloID==id_off)
+	    haloIDs[place]=0
+	    haloID[place2]=0
+	    if i in np.arange(20):
+                print 'before',coords_off[place]
+                print 'before',coords[place2]
+	    coords_off[place,0] = data_off[i]['x_off']
+	    coords_off[place,1] = data_off[i]['y_off']
+	    coords_off[place,2] = data_off[i]['z_off']
+	    coords[place2,0] = data_off[i]['x_off']
+	    coords[place2,1] = data_off[i]['y_off']
+	    coords[place2,2] = data_off[i]['z_off']
+            
+	    if i in np.arange(20):
+                print 'after',coords_off[place]
+                print 'after',coords[place2]
+
+    
+    richness = data['richness']
+    test0 = (haloID!=0)&(data['tag']!=0)
+    test1 = (haloID!=0)&(data['tag']==0)
+    print 'check',np.shape(haloIDs[haloIDs==0]),np.shape(haloIDs[haloIDs!=0])
+    
+    np.savetxt('Miyatake_3d_noMiscenter2_rich_upper_z0.dat',np.array((coords[test0][:,0],coords[test0][:,1],coords[test0][:,2],np.ones(np.shape(richness[test0])[0]))).T)
+    np.savetxt('Miyatake_3d_noMiscenter2_rich_lower_z0.dat',np.array((coords[test1][:,0],coords[test1][:,1],coords[test1][:,2],np.ones(np.shape(richness[test1])[0]))).T)
+    np.savetxt('Miyatake_3d_noMiscenter2_rich_all_z0.dat',np.array((coords[:,0],coords[:,1],coords[:,2],np.ones(np.shape(richness)[0]))).T)
+
+
+        
+    test0 = (data['tag']!=0)
+    test1 = (data['tag']==0)
+    print 'check',np.shape(haloID[haloID==0]),np.shape(haloID[haloID!=0])
+    
+    np.savetxt('Miyatake_3d_miscentering2_rich_upper_z0.dat',np.array((coords[test0][:,0],coords[test0][:,1],coords[test0][:,2],np.ones(np.shape(richness[test0])[0]))).T)
+    np.savetxt('Miyatake_3d_miscentering2_rich_lower_z0.dat',np.array((coords[test1][:,0],coords[test1][:,1],coords[test1][:,2],np.ones(np.shape(richness[test1])[0]))).T)
+    np.savetxt('Miyatake_3d_miscentering2_rich_all_z0.dat',np.array((coords[:,0],coords[:,1],coords[:,2],np.ones(np.shape(richness)[0]))).T)"""
+

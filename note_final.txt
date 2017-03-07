@@ -1,0 +1,568 @@
+#ts: distribution of mass loss
+
+    Lbox = 250.
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+   
+    test0 = halos.Mvir[order_host] >10**14.
+    Mvir = halos.Mvir[order_host][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    haloID = halos.haloID[order_host][test0]
+    concen = halos.concen[order_host][test0]
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+    print '# of cluster sized halos ',np.shape(halos.Mvir[halos.Mvir>10**14.]),np.shape(Mvir)
+    ratio_m = Mvir_sub/Macc_sub
+    test1 = (ratio_m > 10**-0.5) & (ratio_m < 10**0.0)
+    test3 = ratio_m < 10**-0.5
+    plt.hist(np.log10(Mvir_sub/Macc_sub),bins=30,range=[-2.,1.],histtype='step',lw=3,label=r'$M_{\rm vir,host}>10^{14}[h^{-1}{\rm M}_{\odot}]$')
+
+
+    test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host]<10**14.)
+    Mvir = halos.Mvir[order_host][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    plt.hist(np.log10(Mvir_sub/Macc_sub),bins=30,range=[-2.,1.],histtype='step',lw=3,label=r'$M_{\rm vir,host}=[10^{13.5},10^{14}][h^{-1}{\rm M}_{\odot}]$')
+
+    print 'median2:',np.median(np.log10(Mvir_sub/Macc_sub))
+
+    test0 = (halos.Mvir[order_host] >10**13.0) & (halos.Mvir[order_host]<10**13.5)
+    Mvir = halos.Mvir[order_host][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    plt.hist(np.log10(Mvir_sub/Macc_sub),bins=30,range=[-2.,1.],histtype='step',lw=3,label=r'$M_{\rm vir,host}=[10^{13.},10^{13.5}][h^{-1}{\rm M}_{\odot}]$')
+    print 'median3:',np.median(np.log10(Mvir_sub/Macc_sub))
+    plt.legend(loc='upper left')
+    plt.xlabel(r'${\rm log}m_{\rm vir}/m_{\rm acc}$',fontsize=25)
+    plt.ylabel(r'$dN/d(m_{\rm vir}/m_{\rm acc})$',fontsize=25)
+    plt.axis([-2,1,0,80000])
+
+#ts: radial distribution for concentration
+
+    Lbox = 250.
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+   
+    test0 = halos.Mvir[order_host] >10**14.
+    Mvir = halos.Mvir[order_host][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    haloID = halos.haloID[order_host][test0]
+    concen = halos.concen[order_host][test0]
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+    print '# of cluster sized halos ',np.shape(halos.Mvir[halos.Mvir>10**14.]),np.shape(Mvir)
+
+    check = np.array([c > cv.median_c(mvir) for c,mvir in zip(concen,Mvir)])
+    check2 = np.array([not i for i in check]) 
+    ratio_m = Mvir_sub[check]/Macc_sub[check]
+    test1 = (ratio_m > 10**-0.5) & (ratio_m < 10**0.0)
+    test2 = (ratio_m > 10**-1.0) & (ratio_m < 10**-0.5)
+    test3 = (ratio_m < 10**-1.0) 
+    ratio_m2 = Mvir_sub[check2]/Macc_sub[check2]
+    test1_2 = (ratio_m2 > 10**-0.5) & (ratio_m2 < 10**0.0)
+    test2_2 = (ratio_m2 > 10**-1.0) & (ratio_m2 < 10**-0.5)
+    test3_2 = (ratio_m2 < 10**-1.0)
+    #test3 = ratio_m < 10**-1.0
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[check][test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'b-',alpha=0.5,label=r'high-c:$m_{\rm vir}/m_{\rm acc}>10^{-0.5}$')
+    hist2,bins = np.histogram(ratio[check2][test1_2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'b--',label=r'low-c:$m_{\rm vir}/m_{\rm acc}>10^{-0.5}$')
+
+    hist,bins = np.histogram(ratio[check][test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'g-',alpha=0.5,label=r'high-c:$m_{\rm vir}/m_{\rm acc}=[10^{-1},10^{-0.5}]$')
+    hist2,bins = np.histogram(ratio[check2][test2_2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'g--',label=r'low-c:$m_{\rm vir}/m_{\rm acc}=[10^{-1},10^{-0.5}]$')
+
+
+    hist,bins = np.histogram(ratio[check][test3],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'r-',alpha=0.5,label=r'high-c:$m_{\rm vir}/m_{\rm acc}<10^{-1}$')
+    hist2,bins = np.histogram(ratio[check2][test3_2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'r--',label=r'low-c:$m_{\rm vir}/m_{\rm acc}<10^{-1}$')
+    print 'median1:',np.median(ratio)
+    plt.legend(loc='upper left')
+    plt.axis([0,1.0,0.0,3.0])
+    plt.xlabel(r'$r/R_{\rm vir}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('radialDist_concen2.pdf')
+
+#ts: correlation between z_acc and mass loss
+    Lbox = 250.
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+   
+    test0 = (halos.Mvir[order_host] >10**14.)&(halos.Macc_sub[order_sub]>10**10.)
+    Mvir = halos.Mvir[order_host][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    haloID = halos.haloID[order_host][test0]
+    concen = halos.concen[order_host][test0]
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    #abs1 = np.abs(coords_host-coords_sub)
+    #dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+    print '# of cluster sized halos ',np.shape(halos.Mvir[halos.Mvir>10**14.]),np.shape(Mvir)
+    a,b = find_linearParams(np.log10(Mvir_sub/Macc_sub),z_acc_sub)
+    plt.hexbin(np.log10(Mvir_sub/Macc_sub),z_acc_sub,mincnt=1)
+    x = np.linspace(-2.5,0.0)
+    plt.plot(x,a+b*x,'c--')
+    plt.xlabel(r'${\rm log}_{10}(m_{\rm vir}/m_{\rm acc})$',fontsize=25)
+    plt.ylabel(r'$z_{\rm acc}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('scatter_z_massLoss.pdf')
+    plt.clf()
+
+#ts: ejected halos
+  
+    Lbox = 250.
+    #halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    #print np.shape(halos.haloID)
+
+    """EjectID = halos.get_ejectedHalos('/scratch/fas/padmanabhan/ah748/SIMS/Bolshoi/JOBS/ejected_z0/DATA/Bolshoi_halo_ejected_tags.dat',ejected=True)
+    order = halos.match_haloID2(EjectID,halos.haloID)
+
+
+    fmt = '%f %f %f %f %f %f %f %f %f %f %f %f'
+    message = '#Mvir,Macc,Rvir,Vmax,Vacc,concen,x,y,z,vx,vy,vz'
+    coords = halos.coords[order]
+    vel = halos.velocity[order]
+    np.savetxt('ejected_order.txt',np.array((halos.Mvir[order],halos.Macc[order],halos.Rvir[order],halos.Vmax[order],halos.Vacc[order],halos.concen[order],coords[:,0],coords[:,1],coords[:,2],vel[:,0],vel[:,1],vel[:,2])).T,fmt=fmt,header=message)"""
+
+    dt = np.dtype([('Mvir','f4'),('Macc','f4'),('Rvir','f4'),('Vmax','f4'),('Vacc','f4'),('concen','f4'),('x','f4'),('y','f4'),('z','f4'),('vx','f4'),('vy','f4'),('vz','f4')])
+    data = np.loadtxt('ejected_order.txt',dtype=dt)
+
+    #coords_host = halos.coords[halos.Mvir>10**14.]
+    
+    #np.savetxt('Cluster.txt',np.array((coords_host[:,0],coords_host[:,1],coords_host[:,2],halos.haloID[halos.Mvir>10**14.])).T)
+    data2 = np.loadtxt('Cluster.txt')
+    coords_host = np.array((data2[:,0],data2[:,1],data2[:,2])).T
+    coords = np.array((data['x'],data['y'],data['z'])).T
+
+    arr_dist = np.array([np.minimum(np.abs(coords-coords_host[i]),Lbox-np.abs(coords-coords_host[i])) for i in np.arange(np.shape(coords_host)[0])])
+    print np.max(arr_dist)
+    dist2 = np.sum(arr_dist**2.,axis=2)
+    dist = np.min(dist2,axis=0)
+    order = np.argmin(dist2,axis=0)
+
+    np.savetxt('ejected_dist_hostID.txt',np.array((dist,data2[:,3][order],halos.Mvir[test][order],halos.Rvir[test][order],halos.Vmax[test][order],halos.concen[test][order],coords[:,0],coords[:,1],coords[:,2],coords_host[order][:,0],coords_host[order][:,1],coords_host[order][:,2])).T)
+    print np.shape(order)
+    print order[order!=0][:5]
+    print np.max(np.sqrt(dist))
+    plt.hist(np.sqrt(dist),bins=20,histtype='step',lw=3)
+    plt.savefig('test.pdf')
+    plt.clf()
+    print 'done'
+
+
+#ts: ejected 2 to get more accurate ejected information
+
+
+    sys.path.append('/home/fas/padmanabhan/ts485/research/MultiDark/code/')
+    import match_haloID as mh
+
+    dt = np.dtype([('haloID','i8'),('hostFlag','i8'),('mvir','f4'),('vmax','f4'),('rvir','f4'),('rs','f4'),('a_form','f4'),('x','f4'),('y','f4'),('z','f4'),('vx','f4'),('vy','f4'),('vz','f4')])
+    halos2 = np.loadtxt('/home/fas/padmanabhan/ts485/research/MultiDark/data/raw_data/Bolshoi_halos_z0.dat',dtype=dt)
+    Lbox = 250.
+    halos2 = halos2[halos2['hostFlag']==-1]
+    print 'finish 2'
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    print np.shape(halos.haloID)
+
+    EjectID = halos.get_ejectedHalos('/scratch/fas/padmanabhan/ah748/SIMS/Bolshoi/JOBS/ejected_z0/DATA/Bolshoi_halo_ejected_tags.dat',ejected=True)
+    order = halos.match_haloID2(EjectID,halos2['haloID'])
+
+
+    nonEjectID = halos.get_ejectedHalos('/scratch/fas/padmanabhan/ah748/SIMS/Bolshoi/JOBS/ejected_z0/DATA/Bolshoi_halo_ejected_tags.dat',ejected=False)
+    order_non = halos.match_haloID2(nonEjectID,halos2['haloID'])
+
+
+    fmt = '%f %f %f %f %f %f %f %f %f %f'
+    message = '#Mvir,Rvir,Vmax,concen,x,y,z,vx,vy,vz'
+    coords = np.array((halos2['x'][order],halos2['y'][order],halos2['z'][order])).T
+    vel = np.array((halos2['vx'][order],halos2['vy'][order],halos2['vz'][order])).T
+    concen = halos2['rvir']/halos2['rs']
+    print 'max is ',np.log10(np.max(halos2['mvir'][order]))
+    np.savetxt('ejected_order2.txt',np.array((halos2['mvir'][order],halos2['rvir'][order],halos2['vmax'][order],concen[order],coords[:,0],coords[:,1],coords[:,2],vel[:,0],vel[:,1],vel[:,2])).T,fmt=fmt,header=message)
+    print np.mean(halos2['rvir'][order]/halos2['rs'][order])
+
+    dt = np.dtype([('Mvir','f4'),('Rvir','f4'),('Vmax','f4'),('concen','f4'),('x','f4'),('y','f4'),('z','f4'),('vx','f4'),('vy','f4'),('vz','f4')])
+    data = np.loadtxt('ejected_order2.txt',dtype=dt)
+
+    halos2 = halos2[order_non]
+    test = halos2['mvir']>10**14.
+    coords_host = np.array((halos2['x'][test],halos2['y'][test],halos2['z'][test])).T
+    haloID = halos2['haloID'][test]
+    print 'cluster is',np.shape(coords_host)
+
+    coords = np.array((data['x'],data['y'],data['z'])).T
+
+    arr_dist = np.array([np.minimum(np.abs(coords-coords_host[i]),Lbox-np.abs(coords-coords_host[i])) for i in np.arange(np.shape(coords_host)[0])])
+    print np.max(arr_dist)
+    dist2 = np.sum(arr_dist**2.,axis=2)
+    dist = np.min(dist2,axis=0)
+    order2 = np.argmin(dist2,axis=0)
+
+    np.savetxt('ejected_dist_hostID2.txt',np.array((dist,haloID[order2],halos2['mvir'][test][order2],halos2['rvir'][test][order2],halos2['vmax'][test][order2],concen[order_non][test][order2],coords[:,0],coords[:,1],coords[:,2],coords_host[order2][:,0],coords_host[order2][:,1],coords_host[order2][:,2])).T)
+
+
+    dt2 = np.dtype([('dist','f4'),('haloID','f4'),('Mvir_h','f4'),('Rvir_h','f4'),('Vmax_h','f4'),('concen_h','f4'),('x','f4'),('y','f4'),('z','f4'),('x_sub','f4'),('y_sub','f4'),('z_sub','f4')])
+    data2 = np.loadtxt('ejected_dist_hostID2.txt',dtype=dt2)
+    test_eje = (data2['dist'] < 2.*data2['Rvir_h']) & (data['Mvir']>10**10.)
+    print '# of ejected: ',np.shape(data2),np.shape(data),np.shape(data[test_eje])
+    
+    mass_eje = data[test_eje]['Mvir']
+    dist_eje = data2[test_eje]['dist']
+    Rvir_eje = data2[test_eje]['Rvir_h']
+    concen_eje = data2[test_eje]['concen_h']
+    Mvir_eje = data2[test_eje]['Mvir_h']
+    print np.max(dist_eje/Rvir_eje),np.max(data2['dist'][(data2['dist'] < 3.*data2['Rvir_h'])]/data2['Rvir_h'][(data2['dist'] < 3.*data2['Rvir_h'])])
+
+
+    check_eje = np.array([c > cv.median_c(mvir) for c,mvir in zip(concen_eje,Mvir_eje)])
+    check_eje2 = np.array([not i for i in check_eje]) 
+    print 'concentration: ',np.shape(dist_eje[check_eje]),np.shape(dist_eje[check_eje2])
+    
+
+
+
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+   
+    test0 = halos.Mvir[order_host] >10**14.
+    Mvir = halos.Mvir[order_host][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    haloID = halos.haloID[order_host][test0]
+    concen = halos.concen[order_host][test0]
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+
+
+    check = np.array([c > cv.median_c(mvir) for c,mvir in zip(concen,Mvir)])
+    check2 = np.array([not i for i in check]) 
+
+
+    ratio = Mvir_sub[check]/Mvir[check]
+    N_host = np.shape(np.unique(haloID[check]))[0]
+    num1,bins = np.histogram(np.log10(ratio),bins=30,range=[-3.,0.0])
+    norm = bins[1]-bins[0]
+    plt.plot((bins[:-1]+bins[1:])/2.,num1/(N_host*norm),'b-',alpha=0.5)
+
+    ratio2 = np.concatenate((ratio,mass_eje[check_eje]/Mvir_eje[check_eje]),axis=0)
+    num1,bins = np.histogram(np.log10(ratio2),bins=30,range=[-3.,0.0])
+    norm = bins[1]-bins[0]
+    plt.plot((bins[:-1]+bins[1:])/2.,num1/(N_host*norm),'b--',label=r'high-c')
+
+    ratio = Mvir_sub[check2]/Mvir[check2]
+    N_host = np.shape(np.unique(haloID[check2]))[0]
+    num1,bins = np.histogram(np.log10(ratio),bins=30,range=[-3.,0.0])
+    norm = bins[1]-bins[0]
+    plt.plot((bins[:-1]+bins[1:])/2.,num1/(N_host*norm),'g-',alpha=0.5)
+
+    ratio2 = np.concatenate((ratio,mass_eje[check_eje2]/Mvir_eje[check_eje2]),axis=0)
+    num1,bins = np.histogram(np.log10(ratio2),bins=30,range=[-3.,0.0])
+    norm = bins[1]-bins[0]
+    plt.plot((bins[:-1]+bins[1:])/2.,num1/(N_host*norm),'g--',label=r'low-c')
+
+
+    plt.legend(fontsize=20,loc='lower left')
+    plt.semilogy()
+    plt.xlabel(r'${\rm log}_{10}[m_{\rm acc}/M_{\rm vir}]$')
+    plt.ylabel(r'${\rm log}[dN/d{\rm log}(m/M)]$')
+    plt.tight_layout()
+    plt.axis([-3,0,10**-2.3,10**1.5])
+    plt.savefig('subhalo_massFunction_M14_eject_evolved2.pdf')
+    plt.clf()
+    print 'done'
+
+    r_dist = dist/Rhost
+    hist,bins = np.histogram(r_dist[check],normed=True,bins=20,range=[0,2.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'b-',alpha=0.5)
+    hist2,bins = np.histogram(r_dist[check2],normed=True,bins=20,range=[0,2.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'g-',alpha=0.5)
+
+    r_dist1 = np.concatenate((r_dist[check],dist_eje[check_eje]/Rvir_eje[check_eje]),axis=0)
+    hist,bins = np.histogram(r_dist1,normed=True,bins=30,range=[0,2.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'b--',label=r'high-c$')
+
+    r_dist2 = np.concatenate((r_dist[check2],dist_eje[check_eje2]/Rvir_eje[check_eje2]),axis=0)
+                             
+    hist2,bins = np.histogram(r_dist2,normed=True,bins=30,range=[0,2.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'g--',label=r'low-c$')
+    plt.legend(loc='upper left')
+    plt.semilogy()
+    plt.axis([0,2.0,0.0,3.0])
+    plt.xlabel(r'$r/R_{\rm vir}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('radialDist_ejected2.pdf')
+
+#ts: histogram for z_acc
+
+    Lbox = 250.
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+   
+    z_acc_sub = (1./halos.a_acc_sub[order_sub])-1
+    test0 = (halos.Mvir[order_host] >10**14.) & (halos.Macc_sub[order_sub]>10**10.)
+    Mvir = halos.Mvir[order_host][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    haloID = halos.haloID[order_host][test0]
+    concen = halos.concen[order_host][test0]
+    print '# of cluster sized halos ',np.shape(halos.Mvir[halos.Mvir>10**14.]),np.shape(Mvir)
+    ratio_m = Macc_sub/Mvir
+
+    test5 = ratio_m > 10**-1.
+    test1 = ratio_m > 10**-2.5
+    test2 = (ratio_m > 10**-3.5) & (ratio_m < 10**-2.5)
+    test4 = (ratio_m < 10**-3.5)
+    #label=r'$M_{\rm vir,host}>10^{14}[h^{-1}{\rm M}_{\odot}]$'
+    plt.hist(z_acc_sub[test0][test1],bins=30,histtype='step',lw=3,label=r'$m_{\rm acc}/M_{\rm vir}>10^{-2.5}$')
+    plt.hist(z_acc_sub[test0][test2],bins=30,histtype='step',lw=3,label=r'$m_{\rm acc}/M_{\rm vir}=[10^{-3.5},10^{-2.5}]$')
+    #plt.hist(z_acc_sub[test0][test3],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc}=[0.5,1.0]$')
+    plt.hist(z_acc_sub[test0][test4],bins=30,histtype='step',lw=3,label=r'$m_{\rm acc}/M_{\rm vir}<10^{-3.5}$')
+    plt.hist(z_acc_sub[test0][test5],bins=30,histtype='step',lw=3,label=r'$m_{\rm acc}/M_{\rm vir}>10^{-1}$')
+    print '# of subhalos',np.shape(ratio_m)
+
+    plt.semilogy()
+    plt.legend(loc='upper right')
+    plt.xlabel(r'$z_{\rm acc}$',fontsize=25)
+    plt.ylabel(r'$dN/dz_{\rm acc}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('hist_z_acc_M14_2.pdf')
+
+#ts: z_acc and massloss dependencex
+    a,b = find_linearParams(z_acc_sub,np.log10(Mvir_sub/Macc_sub))
+    check = np.array([r > a+b*z for z,r in zip(z_acc_sub,np.log10(Mvir_sub/Macc_sub))])
+    check2 = np.array([not i for i in check]) 
+
+    test1 = z_acc_sub[check] < 0.5
+    test2 =  (z_acc_sub[check] > 0.5) & (z_acc_sub[check] < 1.0)
+    test3 =  z_acc_sub[check]>1.0
+    test1_2 = z_acc_sub[check2] < 0.5
+    test2_2 =  (z_acc_sub[check2] > 0.5) & (z_acc_sub[check2] < 1.0)
+    test3_2 =  z_acc_sub[check2]>1.0
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[check][test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'b-',alpha=0.5,label=r'small:$z_{\rm acc}<0.5$')
+    hist2,bins = np.histogram(ratio[check2][test1_2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'b--',label=r'large:$z_{\rm acc}<0.5$')
+
+    hist,bins = np.histogram(ratio[check][test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'g-',alpha=0.5,label=r'small:$z_{\rm acc}=[0.5,1.0]$')
+    hist2,bins = np.histogram(ratio[check2][test2_2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'g--',label=r'large:$z_{\rm acc}=[0.5,1.0]$')
+
+
+    hist,bins = np.histogram(ratio[check][test3],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'r-',alpha=0.5,label=r'small:$z_{\rm acc}>1.0$')
+    hist2,bins = np.histogram(ratio[check2][test3_2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist2,'r--',label=r'large:$z_{\rm acc}>1.0$')
+
+
+
+    plt.legend(loc='upper right')
+    plt.axis([0,1.0,0.0,3.0])
+    plt.xlabel(r'$r/R_{\rm vir}$',fontsize=25)
+    plt.title(r'split based on $z_{\rm acc}$ like concentration')
+    plt.tight_layout()
+    plt.savefig('radialDist_z_acc3.pdf')
+    plt.clf()
+
+#ts: radial distribution with mass dependence
+ 
+
+    Lbox = 250.
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+    test0 = (halos.Mvir[order_host] >10**14.)&(halos.Macc_sub[order_sub]>10**10.4)
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+
+    test1 = (z_acc_sub <0.5)
+    test2 = (z_acc_sub > 0.5)
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'b-',alpha=0.5,label=r'$z_{\rm acc}<0.5$')
+    hist,bins = np.histogram(ratio[test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'g-',alpha=0.5,label=r'$z_{\rm acc}>0.5$')
+    test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host]<10**14.)&(halos.Macc_sub[order_sub]>10**10.4)
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+
+    test1 = (z_acc_sub <0.5)
+    test2 = (z_acc_sub > 0.5)
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'bo')
+    hist,bins = np.histogram(ratio[test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'go')
+
+    test0 = (halos.Mvir[order_host] >10**13.0) & (halos.Mvir[order_host]<10**13.5)&(halos.Macc_sub[order_sub]>10**10.4)
+
+
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+    test1 = (z_acc_sub <0.5)
+    test2 = (z_acc_sub > 0.5)
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'c--')
+    hist,bins = np.histogram(ratio[test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'y--')
+
+
+    plt.legend(loc='upper left',fontsize=23)
+    plt.axis([0,1.0,0.0,2.5])
+    plt.xlabel(r'$r/R_{\rm vir}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('radialDist_z_acc_massDependence.pdf')
+
+
+
+#ts: correlation
+
+
+    Lbox = 250.
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+
+
+    z_acc_sub = (1./halos.a_acc_sub[order_sub])-1
+    test0 = (halos.Mvir[order_host] >10**14.)&(halos.Macc_sub[order_sub]>10**10.4)
+    test1 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host]<10**14.)&(halos.Macc_sub[order_sub]>10**10.4)
+    test2 = (halos.Mvir[order_host] >10**13.0) & (halos.Mvir[order_host]<10**13.5)&(halos.Macc_sub[order_sub]>10**10.4)
+    plt.hist(z_acc_sub[test0],bins=30,histtype='step',lw=3,label=r'$M_{\rm vir}>10^{14}h{-1}{\rm M}_{\odot}$')
+    plt.hist(z_acc_sub[test1],bins=30,histtype='step',lw=3,label=r'$M_{\rm vir}=[10^{13.5},10^{14}]h^{-1}{\rm M}_{\odot}$')
+    plt.hist(z_acc_sub[test2],bins=30,histtype='step',lw=3,label=r'$M_{\rm vir}=[10^{13},10^{13.5}]h{-1}{\rm M}_{\odot}$')
+
+    plt.legend(loc='upper right')
+    #plt.axis([0,1.0,0.0,3.0])
+    plt.xlabel(r'$z_{\rm acc}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('z_acc_massDependence.pdf')
+    plt.clf()
+
+    plt.hexbin(z_acc_sub[test0],halos.Vacc_sub[order_sub][test0],mincnt=1,bins='log',gridsize=300)
+    plt.xlabel(r'$z_{\rm acc}$')
+    plt.ylabel(r'$V_{\rm acc,sub}$[km/s]')
+    plt.axis([0,3,0,500])
+    
+    plt.tight_layout()
+    plt.savefig('z_acc_V_acc.pdf')
+    plt.clf()
+
+
+    plt.hexbin(z_acc_sub[test0],np.log10(halos.Macc_sub[order_sub][test0]/halos.Mvir[order_host][test0]),mincnt=1,bins='log',gridsize=250)
+    plt.xlabel(r'$z_{\rm acc}$')
+    plt.ylabel(r'${\rm log}_{10}(m_{\rm acc}/M_{\rm vir})$')
+    
+    plt.axis([0,3,-4.5,-2])
+    plt.tight_layout()
+    plt.savefig('z_acc_M_acc.pdf')
+    plt.clf()
+
+#ts: mass dependence2
+
+
+    Lbox = 250.
+    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+    test0 = (halos.Mvir[order_host] >10**14.)&(halos.Macc_sub[order_sub]>10**10.4)
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+
+    test1 = (z_acc_sub <0.1)
+    test2 = (z_acc_sub > 0.1) & (z_acc_sub < 0.25)
+    test3 = (z_acc_sub > 0.25) & (z_acc_sub < 0.5)
+    test4 = (z_acc_sub > 0.5)
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'b-',alpha=0.5,label=r'$z_{\rm acc}<0.1$')
+    hist,bins = np.histogram(ratio[test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'g-',alpha=0.5,label=r'$z_{\rm acc}=[0.1,0.25]$')
+    hist,bins = np.histogram(ratio[test3],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'r-',alpha=0.5,label=r'$z_{\rm acc}=[0.25,0.5]$')
+    hist,bins = np.histogram(ratio[test4],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'c-',alpha=0.5,label=r'$z_{\rm acc}>0.5$')
+
+
+    test0 = (halos.Mvir[order_host] >10**13.5)&(halos.Mvir[order_host] <10**14.0)&(halos.Macc_sub[order_sub]>10**10.4)
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+
+    test1 = (z_acc_sub <0.1)
+    test2 = (z_acc_sub > 0.1) & (z_acc_sub < 0.25)
+    test3 = (z_acc_sub > 0.25) & (z_acc_sub < 0.5)
+    test4 = (z_acc_sub > 0.5)
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'bo',alpha=1.0)
+    hist,bins = np.histogram(ratio[test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'go',alpha=1.0)
+    hist,bins = np.histogram(ratio[test3],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'ro',alpha=1.0)
+    hist,bins = np.histogram(ratio[test4],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'co',alpha=1.0)
+
+
+    test0 = (halos.Mvir[order_host] >10**13.0)&(halos.Mvir[order_host] <10**13.5)&(halos.Macc_sub[order_sub]>10**10.4)
+    Rhost = halos.Rvir[order_host][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
+    z_acc_sub = (1./halos.a_acc_sub[order_sub][test0])-1
+    abs1 = np.abs(coords_host-coords_sub)
+    dist =np.sqrt(np.sum(np.minimum(abs1,Lbox-abs1)**2.,axis=1))
+
+    test1 = (z_acc_sub <0.1)
+    test2 = (z_acc_sub > 0.1) & (z_acc_sub < 0.25)
+    test3 = (z_acc_sub > 0.25) & (z_acc_sub < 0.5)
+    test4 = (z_acc_sub > 0.5)
+    ratio = dist/Rhost
+    hist,bins = np.histogram(ratio[test1],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'b--',alpha=1.0)
+    hist,bins = np.histogram(ratio[test2],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'g--',alpha=1.0)
+    hist,bins = np.histogram(ratio[test3],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'r--',alpha=1.0)
+    hist,bins = np.histogram(ratio[test4],normed=True,bins=15,range=[0,1.0])
+    plt.plot((bins[:-1]+bins[1:])/2.,hist,'c--',alpha=1.0)
+
+
+    plt.legend(loc='upper left',fontsize=20)
+    plt.axis([0,1.0,0.0,3.0])
+    plt.xlabel(r'$r/R_{\rm vir}$',fontsize=25)
+    plt.tight_layout()
+    plt.savefig('radialDist_z_acc_massDependence.pdf')
