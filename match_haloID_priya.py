@@ -265,18 +265,18 @@ def find_linearParams(data_x,data_y):
         
 def main(argv=None):  
     Lbox = 250.
-    halos = Halos('Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
+    halos = Halos('../code/Bolshoi_hosthalos_Mvir13_z0.dat',Lbox=Lbox)
 
-    order_sub,order_host = halos.select_subhalos('Bolshoi_Mvir13_subhalos_z0.dat')
+    order_sub,order_host = halos.select_subhalos('../code/Bolshoi_Mvir13_subhalos_z0.dat')
 
 
-    test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host] <10**14.)
+    test0 = (halos.Mvir[order_host] >10**13.0) & (halos.Mvir[order_host] <10**13.5)
     #Mvir = halos.Mvir[order_host][test0]
     #Mvir_sub = halos.Mvir_sub[order_sub][test0]
     #Macc_sub = halos.Macc_sub[order_sub][test0]
     #Rhost = halos.Rvir[order_host][test0]
-    #coords_host = halos.coords[order_host][test0]
-    #coords_sub = halos.coords_sub[order_sub][test0]
+    coords_host = halos.coords[order_host][test0]
+    coords_sub = halos.coords_sub[order_sub][test0]
     vel_host = halos.velocity[order_host][test0]
     vel_sub = halos.velocity_sub[order_sub][test0]
     
@@ -286,34 +286,24 @@ def main(argv=None):
     test2 = (z_acc_sub > 0.1) & (z_acc_sub < 0.25)
     test3 = (z_acc_sub > 0.25) & (z_acc_sub < 0.5)
     test4 = z_acc_sub>0.5
-    velDiff = vel_sub[:,2]-vel_host[:,2]
-    plt.hist(velDiff[test1],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} < 0.1$')
-    plt.hist(velDiff[test2],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} = [0.1,0.25]$')
-    plt.hist(velDiff[test3],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} =[0.25,0.5]$')
-    plt.hist(velDiff[test4],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc} >0.5$')
-    plt.xlabel(r'$\Delta v_[\rm z}$[km/s]')
-    plt.ylabel('fraction')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig('vz_zacc_M13.5to14_z0.pdf')
-    plt.clf()
+    velDiff = np.sqrt((vel_sub[:,0]-vel_host[:,0])**2.+(vel_sub[:,1]-vel_host[:,1])**2.+(vel_sub[:,2]-vel_host[:,2])**2.)
+    hist1,bins = np.histogram(velDiff[test1],bins=100,range=[0,2000])
+    hist2,bins = np.histogram(velDiff[test2],bins=100,range=[0,2000])
+    hist3,bins = np.histogram(velDiff[test3],bins=100,range=[0,2000])
+    hist4,bins = np.histogram(velDiff[test4],bins=100,range=[0,2000])
+    np.savetxt('hist_velDiff_zacc_M13to13.5.dat',np.array(((bins[1:]+bins[:-1])/2.,hist1,hist2,hist3,hist4)).T)
+    
 
     
     test1 = (z_acc_first < 0.1)
     test2 = (z_acc_first > 0.1) & (z_acc_first < 0.25)
     test3 = (z_acc_first > 0.25) & (z_acc_first < 0.5)
     test4 = z_acc_first>0.5
-    velDiff = vel_sub[:,2]-vel_host[:,2]
-    plt.hist(velDiff[test1],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} < 0.1$')
-    plt.hist(velDiff[test2],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} = [0.1,0.25]$')
-    plt.hist(velDiff[test3],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} =[0.25,0.5]$')
-    plt.hist(velDiff[test4],bins=30,histtype='step',lw=3,label=r'$z_{\rm acc,first} >0.5$')
-    plt.xlabel(r'$\Delta v_[\rm z}$[km/s]')
-    plt.ylabel('fraction')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig('vz_zacc_first_M13.5to14_z0.pdf')
-    plt.clf()
+    hist1,bins = np.histogram(velDiff[test1],bins=100,range=[0,2000])
+    hist2,bins = np.histogram(velDiff[test2],bins=100,range=[0,2000])
+    hist3,bins = np.histogram(velDiff[test3],bins=100,range=[0,2000])
+    hist4,bins = np.histogram(velDiff[test4],bins=100,range=[0,2000])
+    np.savetxt('hist_velDiff_zacc_first_M13to13.5.dat',np.array(((bins[1:]+bins[:-1])/2.,hist1,hist2,hist3,hist4)).T)
     
         
     
