@@ -271,9 +271,10 @@ def main(argv=None):
 
 
     test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host] <10**14.)
-    #Mvir = halos.Mvir[order_host][test0]
-    #Mvir_sub = halos.Mvir_sub[order_sub][test0]
-    #Macc_sub = halos.Macc_sub[order_sub][test0]
+    hostID = halos.haloID_host[order_host][test0]
+    Mvir = halos.Mvir[order_host][test0]
+    Mvir_sub = halos.Mvir_sub[order_sub][test0]
+    Macc_sub = halos.Macc_sub[order_sub][test0]
     #Rhost = halos.Rvir[order_host][test0]
     coords_host = halos.coords[order_host][test0]
     coords_sub = halos.coords_sub[order_sub][test0]
@@ -286,28 +287,33 @@ def main(argv=None):
     coords_sub[:,2] += vel_sub[:,2]
     coords_sub = periodic(coords_sub,Lbox=2000.)
     print np.max(coords_max),np.max(coords_sub)
+
+
+    ID1 ,order1 = np.unique(hostID,return_index=True)
+    num_host = np.shape(coords_host[order1]([0]
+    np.savetxt('hostHalo_M13.5to14.dat',np.array((coords_host[order1][:,0],coords_host[order1][:,1],coords_host[order1][:,2],np.ones(num_host))).T)
+    
     z_acc_first = 1./halos.a_first_acc_sub[order_sub][test0]-1        
     z_acc_sub = 1./halos.a_acc_sub[order_sub][test0]-1
+    
     test1 = (z_acc_sub < 0.25)
-    test2 = (z_acc_sub>0.25)
-    #velDiff = np.sqrt((vel_sub[:,0]-vel_host[:,0])**2.+(vel_sub[:,1]-vel_host[:,1])**2.+(vel_sub[:,2]-vel_host[:,2])**2.)
-    #hist1,bins = np.histogram(velDiff[test1],bins=100,range=[0,2000])
-    #hist2,bins = np.histogram(velDiff[test2],bins=100,range=[0,2000])
-    #hist3,bins = np.histogram(velDiff[test3],bins=100,range=[0,2000])
-    #hist4,bins = np.histogram(velDiff[test4],bins=100,range=[0,2000])
-    #np.savetxt('hist_velDiff_zacc_M13to13.5.dat',np.array(((bins[1:]+bins[:-1])/2.,hist1,hist2,hist3,hist4)).T)
+    test2 = (z_acc_sub > 0.25)
+    num1 = np.shape(coords_sub[test1])[0]
+    num2 = np.shape(coords_sub[test2])[0]
+    print num1,num2
+    np.savetxt('subHalo_M13.5to14_zsmall0.25.dat',np.array((coords_sub[test1][:,0],coords_sub[test1][:,1],coords_sub[test1][:,2],np.ones(num1),z_acc_sub[test1],Mvir_sub[test1],Macc_sub[test1])).T)
+    np.savetxt('subHalo_M13.5to14_zlarge0.25.dat',np.array((coords_sub[test2][:,0],coords_sub[test2][:,1],coords_sub[test2][:,2],np.ones(num2),z_acc_sub[test2],Mvir_sub[test2],Macc_sub[test2])).T)
+
+    test1 = (z_acc_first < 0.25)
+    test2 = (z_acc_first > 0.25)
+    num1 = np.shape(coords_sub[test1])[0]
+    num2 = np.shape(coords_sub[test2])[0]
+    print num1,num2
+    np.savetxt('subHalo_M13.5to14_zfirst_small0.25.dat',np.array((coords_sub[test1][:,0],coords_sub[test1][:,1],coords_sub[test1][:,2],np.ones(num1),z_acc_sub[test1],Mvir_sub[test1],Macc_sub[test1])).T)
+    np.savetxt('subHalo_M13.5to14_zfirst_large0.25.dat',np.array((coords_sub[test2][:,0],coords_sub[test2][:,1],coords_sub[test2][:,2],np.ones(num2),z_acc_sub[test2],Mvir_sub[test2],Macc_sub[test2])).T)
     
 
     
-    test1 = (z_acc_first < 0.1)
-    test2 = (z_acc_first > 0.1) & (z_acc_first < 0.25)
-    test3 = (z_acc_first > 0.25) & (z_acc_first < 0.5)
-    test4 = z_acc_first>0.5
-    hist1,bins = np.histogram(velDiff[test1],bins=100,range=[0,2000])
-    hist2,bins = np.histogram(velDiff[test2],bins=100,range=[0,2000])
-    hist3,bins = np.histogram(velDiff[test3],bins=100,range=[0,2000])
-    hist4,bins = np.histogram(velDiff[test4],bins=100,range=[0,2000])
-    np.savetxt('hist_velDiff_zacc_first_M13to13.5.dat',np.array(((bins[1:]+bins[:-1])/2.,hist1,hist2,hist3,hist4)).T)
     
         
     
