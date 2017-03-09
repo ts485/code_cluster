@@ -112,9 +112,9 @@ class Halos:
         dict_host = {}
         for i,j in enumerate(self.haloID[subhalo_tag]):
             dict_host[j] = i
-            order = np.array([dict_host[i] for i in self.hostFlag_sub[test_subSub]])
+        order = np.array([dict_host[i] for i in self.hostFlag_sub[test_subSub]])
 
-            return test_subSub,subhalo_tag[order]
+        return test_subSub,subhalo_tag[order]
 
     def subhalo_catalog(self,host_haloIDs):
         dict_host = {}
@@ -153,7 +153,7 @@ class Halos:
             while (self.ejectID[j] <= one_id):
                 if self.ejectID[j]==one_id:
                     ar_order[k] = order_halo[i]
-    key_id[k] = one_id
+                    key_id[k] = one_id
                     k += 1
                 if one_id != haloID[i]:
                     print "Stop using enumerate and change k to sample['id'][i]."
@@ -162,10 +162,11 @@ class Halos:
                     print 'bye'
                     break
 
-
-                    if j == np.shape(self.ejectID)[0]:
+            if j == np.shape(self.ejectID)[0]:
                 print 'bye'
-break
+                break
+
+                
 
         order = ar_order[:k].astype('int')
         return order
@@ -262,6 +263,13 @@ def find_linearParams(data_x,data_y):
     print 'coeficcient is ',b*((num*S_xy-S_x*S_y)/Delta2),b
     return a,b
 
+def periodic(coords,Lbox=1.0):
+    test = coords >= Lbox
+    coords[test] = coords[test]-Lbox
+    test = coords < 0.0
+    coords[test] = Lbox+coords[test]
+    return coords
+
         
 def main(argv=None):  
     Lbox = 250.
@@ -270,8 +278,8 @@ def main(argv=None):
     order_sub,order_host = halos.select_subhalos('../code/Bolshoi_Mvir13_subhalos_z0.dat')
 
 
-    test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host] <10**14.)
-    hostID = halos.haloID_host[order_host][test0]
+    test0 = (halos.Mvir[order_host] >10**13.5) & (halos.Mvir[order_host] <10**14.0)
+    hostID = halos.haloID[order_host][test0]
     Mvir = halos.Mvir[order_host][test0]
     Mvir_sub = halos.Mvir_sub[order_sub][test0]
     Macc_sub = halos.Macc_sub[order_sub][test0]
@@ -283,14 +291,14 @@ def main(argv=None):
     vel_host = halos.velocity[order_host][test0]/hubble
     vel_sub = halos.velocity_sub[order_sub][test0]/hubble
     coords_host[:,2] += vel_host[:,2]
-    coords_host = periodic(coords_host,Lbox=2000.)
+    coords_host = periodic(coords_host,Lbox=Lbox)
     coords_sub[:,2] += vel_sub[:,2]
-    coords_sub = periodic(coords_sub,Lbox=2000.)
-    print np.max(coords_max),np.max(coords_sub)
+    coords_sub = periodic(coords_sub,Lbox=Lbox)
+    print np.max(coords_host),np.max(coords_sub)
 
 
     ID1 ,order1 = np.unique(hostID,return_index=True)
-    num_host = np.shape(coords_host[order1]([0]
+    num_host = np.shape(coords_host[order1])[0]
     np.savetxt('hostHalo_M13.5to14.dat',np.array((coords_host[order1][:,0],coords_host[order1][:,1],coords_host[order1][:,2],np.ones(num_host))).T)
     
     z_acc_first = 1./halos.a_first_acc_sub[order_sub][test0]-1        
